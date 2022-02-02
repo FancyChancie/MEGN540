@@ -51,7 +51,7 @@ void blink_morse_str(char* str, uint16_t dot_length_ms)
     //
     // END FUNCTION
 
-    for (int i=0;i<strlen(str);i++) {
+    for (int i=0;i<sizeof(str);i++) {
         blink_morse_char(str[i],dot_length_ms);
     }
     
