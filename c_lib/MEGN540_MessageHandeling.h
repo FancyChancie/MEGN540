@@ -42,10 +42,10 @@
 typedef struct MSG_FLAG { bool active; float duration; Time_t last_trigger_time; } MSG_FLAG_t;
 
 
-MSG_FLAG_t mf_restart;       ///<-- This flag indicates that the device received a restart command from the hoast. Default inactive.
-MSG_FLAG_t mf_loop_timer;    ///<-- Indicates if the system should report time to complete a loop.
+MSG_FLAG_t mf_restart;           ///<-- This flag indicates that the device received a restart command from the host. Default inactive.
+MSG_FLAG_t mf_loop_timer;        ///<-- Indicates if the system should report time to complete a loop.
 MSG_FLAG_t mf_time_float_send;   ///<-- Indicates if the system should report the time to send a float.
-MSG_FLAG_t mf_send_time;     ///<-- Indicates if the system should send the current time.
+MSG_FLAG_t mf_send_time;         ///<-- Indicates if the system should send the current time.
 
 /**
  * Function MSG_FLAG_Execute indicates if the action associated with the message flag should be executed
