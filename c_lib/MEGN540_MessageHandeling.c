@@ -51,6 +51,7 @@ bool MSG_FLAG_Execute( MSG_FLAG_t* p_flag)
     // THIS FUNCTION WILL BE MOST USEFUL FORM LAB 2 ON.
     // What is the logic to indicate an action should be executed?
     // For Lab 1, ignore the timing part.
+  
     return false;
 }
 
@@ -184,7 +185,6 @@ void Message_Handling_Task()
             break;
         default:
             // What to do if you dont recognize the command character
-            
             break;
     }
 }
