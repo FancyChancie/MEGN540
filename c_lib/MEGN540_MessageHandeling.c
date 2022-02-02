@@ -65,7 +65,7 @@ void Message_Handling_Init()
     // YOUR CODE HERE. This is where you'd initialize any
     // state machine flags to control your main-loop state machine
 
-    MSG_FLAG_Init( &mf_restart ); // needs to be initialized to the default values.
+    MSG_FLAG_Init(&mf_restart); // needs to be initialized to the default values.
     MSG_FLAG_Init(&mf_loop_timer);
     MSG_FLAG_Init(&mf_time_float_send);
     MSG_FLAG_Init(&mf_send_time); 
