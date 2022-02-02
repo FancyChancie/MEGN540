@@ -51,6 +51,11 @@ bool MSG_FLAG_Execute( MSG_FLAG_t* p_flag)
     // THIS FUNCTION WILL BE MOST USEFUL FORM LAB 2 ON.
     // What is the logic to indicate an action should be executed?
     // For Lab 1, ignore the timing part.
+    MSG_FLAG_Init(&mf_restart);
+    MSG_FLAG_Init(&mf_loop_timer);
+    MSG_FLAG_Init(&mf_time_float_send);
+    MSG_FLAG_Init(&mf_send_time);
+    
     return false;
 }
 
