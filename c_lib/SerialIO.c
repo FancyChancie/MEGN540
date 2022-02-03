@@ -79,8 +79,7 @@ static CDC_LineEncoding_t LineEncoding1 = { .BaudRateBPS = 0,
                                             .DataBits    = 8                            };
 
 
-void USB_Upkeep_Task()
-{
+void USB_Upkeep_Task(){
     USB_USBTask();
 
     // *** MEGN540  ***
@@ -88,8 +87,7 @@ void USB_Upkeep_Task()
 }
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
-void USB_SetupHardware(void)
-{
+void USB_SetupHardware(void){
 #if (ARCH == ARCH_AVR8)
 	/* Disable watchdog if enabled by bootloader/fuses */
 	MCUSR &= ~(1 << WDRF);
@@ -109,8 +107,7 @@ void USB_SetupHardware(void)
 /** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs and
  *  starts the library USB task to begin the enumeration and USB management process.
  */
-void EVENT_USB_Device_Connect(void)
-{
+void EVENT_USB_Device_Connect(void){
 	/* Indicate USB enumerating */
 	
 	//Future LED MSG could be good here
@@ -119,8 +116,7 @@ void EVENT_USB_Device_Connect(void)
 /** Event handler for the USB_Disconnect event. This indicates that the device is no longer connected to a host via
  *  the status LEDs and stops the USB management and CDC management tasks.
  */
-void EVENT_USB_Device_Disconnect(void)
-{
+void EVENT_USB_Device_Disconnect(void){
 	/* Indicate USB not ready */
 	
 	//Future LED MSG could be good here
@@ -129,8 +125,7 @@ void EVENT_USB_Device_Disconnect(void)
 /** Event handler for the USB_ConfigurationChanged event. This is fired when the host set the current configuration
  *  of the USB device after enumeration - the device endpoints are configured and the CDC management tasks are started.
  */
-void EVENT_USB_Device_ConfigurationChanged(void)
-{
+void EVENT_USB_Device_ConfigurationChanged(void){
 	bool ConfigSuccess = true;
 
 	/* Setup first CDC Interface's Endpoints */
@@ -147,8 +142,7 @@ void EVENT_USB_Device_ConfigurationChanged(void)
  *  the device from the USB host before passing along unhandled control requests to the library for processing
  *  internally.
  */
-void EVENT_USB_Device_ControlRequest(void)
-{
+void EVENT_USB_Device_ControlRequest(void){
 	/* Determine which interface's Line Coding data is being set from the wIndex parameter */
 	void* LineEncodingData = &LineEncoding1;
 
@@ -308,10 +302,7 @@ void usb_write_next_byte(){
  * (non-blocking) Function usb_send_byte Adds a character to the output buffer
  * @param byte [uint8_t] Data to send
  */
-void usb_send_byte(uint8_t byte)
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
+void usb_send_byte(uint8_t byte){
 	rb_push_front_C(&_usb_send_buffer,byte);
 }
 
@@ -320,10 +311,8 @@ void usb_send_byte(uint8_t byte)
  * @param p_data [void*] pointer to the data-object to be sent
  * @param data_len [uint8_t] size of data-object to be sent
  */
-void usb_send_data(void* p_data, uint8_t data_len)
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
+void usb_send_data(void* p_data, uint8_t data_len){
+
 	for (uint8_t i=0;i<data_len;i++){
 		rb_push_front_C(&_usb_send_buffer,p_data[i]);
 	}
@@ -333,10 +322,8 @@ void usb_send_data(void* p_data, uint8_t data_len)
  * (non-blocking) Function usb_send_str adds a c-style (null terminated) string to the output buffer
  * @param p_str [char*] Pointer to a c-string (null terminated) to send
  */
-void usb_send_str(char* p_str)
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE. Remember c-srtings are null terminated.
+void usb_send_str(char* p_str){
+    // Remember c-srtings are null terminated.
 	uint8_t i = 0;
 	
 	while(p_str[i] != '\0'){
@@ -364,8 +351,7 @@ void usb_send_str(char* p_str)
  * @param data_len [uint8_t] size of the data-object to send. Remember sizeof() can help you with this!
  */
 void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
-    // *** MEGN540  ***
-    // YOUR CODE HERE. Remember c-strings are null terminated. Use the above functions to help!
+    // Remember c-strings are null terminated. Use the above functions to help!
 
     // FUNCTION BEGIN
     //  Calculate the length of the format string taking advantage of the null-termination (+1 for null termination)
