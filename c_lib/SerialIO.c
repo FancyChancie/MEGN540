@@ -323,6 +323,9 @@ void usb_send_data(void* p_data, uint8_t data_len)
 {
     // *** MEGN540  ***
     // YOUR CODE HERE
+	for (uint8_t i=0;i<data_len;i++){
+		rb_push_front_C(&_usb_send_buffer,p_data(i));
+	}
 }
 
 /**
