@@ -34,22 +34,19 @@
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
  */
-int main(void)
-{
+int main(void){
     USB_SetupHardware();
     GlobalInterruptEnable();
     Message_Handling_Init(); // initialize message handling
 
-    while( true )
-    {
+    while( true ){
         USB_Upkeep_Task();
 
         //USB_Echo_Task();// you'll want to remove this once you get your serial sorted
         Message_Handling_Task();
 
         // Below here you'll process state-machine flags.
-        if( MSG_FLAG_Execute( &mf_restart ) )
-        {
+        if(MSG_FLAG_Execute(&mf_restart)){
             // re initialzie your stuff...
         }
     }

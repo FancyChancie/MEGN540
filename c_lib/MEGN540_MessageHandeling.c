@@ -31,8 +31,7 @@
 #include "MEGN540_MessageHandeling.h"
 
 
-static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag)
-{
+static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag){
     p_flag->active = false;
     p_flag->duration = -1;
     p_flag->last_trigger_time.millisec=0;
@@ -45,13 +44,16 @@ static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag)
  * in the main loop both because its active and because its time.
  * @return [bool] True for execute action, False for skip action
  */
-bool MSG_FLAG_Execute( MSG_FLAG_t* p_flag)
-{
+bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag){
     // *** MEGN540  ***
     // THIS FUNCTION WILL BE MOST USEFUL FORM LAB 2 ON.
     // What is the logic to indicate an action should be executed?
     // For Lab 1, ignore the timing part.
-  
+    if(MSG_FLAG_t){
+        if(){
+            return true;
+        }
+    }
     return false;
 }
 
@@ -60,10 +62,8 @@ bool MSG_FLAG_Execute( MSG_FLAG_t* p_flag)
  * Function Message_Handling_Init initializes the message handling and all associated state flags and data to their default
  * conditions.
  */
-void Message_Handling_Init()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE. This is where you'd initialize any
+void Message_Handling_Init(){
+    // This is where you'd initialize any
     // state machine flags to control your main-loop state machine
 
     MSG_FLAG_Init(&mf_restart); // needs to be initialized to the default values.
@@ -78,10 +78,8 @@ void Message_Handling_Init()
  * It returns true unless the program receives a reset message.
  * @return
  */
-void Message_Handling_Task()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE. I suggest you use your peak function and a switch interface
+void Message_Handling_Task(){
+    // I suggest you use your peak function and a switch interface
     // Either do the simple stuff strait up, set flags to have it done later.
     // If it just is a USB thing, do it here, if it requires other hardware, do it in the main and
     // set a flag to have it done here.
@@ -193,10 +191,8 @@ void Message_Handling_Task()
  * @param cmd
  * @return Size of expected string. Returns 0 if unreconized.
  */
-uint8_t MEGN540_Message_Len( char cmd )
-{
-    switch(cmd)
-    {
+uint8_t MEGN540_Message_Len( char cmd ){
+    switch(cmd){
         case '~': return	1; break;
         case '*': return	9; break;
         case '/': return	9; break;
