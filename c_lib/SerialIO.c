@@ -362,8 +362,7 @@ void usb_send_str(char* p_str)
  * @param p_data [void*] pointer to the data-object to send.
  * @param data_len [uint8_t] size of the data-object to send. Remember sizeof() can help you with this!
  */
-void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len )
-{
+void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // *** MEGN540  ***
     // YOUR CODE HERE. Remember c-strings are null terminated. Use the above functions to help!
 
@@ -383,40 +382,30 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len )
     usb_send_str(format);
     usb_send_byte(cmd);
     usb_send_data(p_data,data_len);
-
 }
 
 /**
  * (non-blocking) Funtion usb_msg_length returns the number of bytes in the receive buffer awaiting processing.
  * @return [uint8_t] Number of bytes ready for processing.
  */
-uint8_t usb_msg_length()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
-    return 0;
+uint8_t usb_msg_length(){
+    return rb_length_C(&_usb_receive_buffer);
 }
 
 /**
  * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in teh receive buffer (null if empty).
  * @return [uint8_t] Next Byte
  */
-uint8_t usb_msg_peek()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
-    return 0;
+uint8_t usb_msg_peek(){
+    return rb_get_C(&_usb_receive_buffer); 
 }
 
 /**
  * (non-blocking) Function usb_msg_get removes and returns the next byte in the receive buffer (null if empty)
  * @return [uint8_t] Next Byte
  */
-uint8_t usb_msg_get()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
-    return 0;
+uint8_t usb_msg_get(){
+    return rb_pop_front_C(&_usb_receive_buffer);
 }
 
 /**
@@ -428,20 +417,22 @@ uint8_t usb_msg_get()
  * @param data_len
  * @return [bool]  True: sucess, False: not enough bytes available
  */
-bool usb_msg_read_into(void* p_obj, uint8_t data_len)
-{
-    // *** MEGN540  ***
-    //YOUR CODE HERE
-    return false;
+bool usb_msg_read_into(void* p_obj, uint8_t data_len){
+    if(rb_length_C(&_usb_receive_buffer < data_len) return false;
+    
+    char* data = p_obj;
+    for(uint8_t i=0;i<data_len;i++){
+        data[i] = rb_pop_front_C(&_usb_receive_buffer);
+    }
+    return true;
 }
 
 /**
  * (non-blocking) Function usb_flush_input_buffer sets the length of the recieve buffer to zero and disreguards
  * any bytes that remaining.
  */
-void usb_flush_input_buffer()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
+void usb_flush_input_buffer(){
+    while(rb_length_C>0){
+        rb_pop_front_C(&_usb_receive_buffer);
+    }
 }
-
