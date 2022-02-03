@@ -311,6 +311,7 @@ void usb_send_byte(uint8_t byte)
 {
     // *** MEGN540  ***
     // YOUR CODE HERE
+	rb_push_front_C(&_usb_send_buffer,byte);
 }
 
 /**
