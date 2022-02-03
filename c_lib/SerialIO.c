@@ -265,8 +265,7 @@ void usb_read_next_byte(){
  * (non-blocking) Function usb_write_next_byte takes the next byte from the output
  * ringbuffer and writes it to the USB port (if free).
  */
-void usb_write_next_byte()
-{
+void usb_write_next_byte(){
     // *** MEGN540  ***
     // YOUR CODE HERE!  You'll need to take inspiration from the USB_Echo_Task above but
     // will need to adjust to make it non blocking. You'll need to dig into the library to understand
@@ -295,14 +294,13 @@ void usb_write_next_byte()
         // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
         while (tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
             // Pop off front of ring buffer & write
-            Endpoint_Write8(rb_pop_front_C(&_usb_send_buffer));
+            Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
             // Decerment tx_epsize_space_left to control while loop
             tx_epsize_space_left--;
         }
         // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
         Endpoint_ClearIN();
     }
-    
 }
 
 /**
