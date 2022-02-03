@@ -376,22 +376,16 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len )
  * (non-blocking) Funtion usb_msg_length returns the number of bytes in the receive buffer awaiting processing.
  * @return [uint8_t] Number of bytes ready for processing.
  */
-uint8_t usb_msg_length()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
-    return 0;
+uint8_t usb_msg_length(){
+	return rb_length_C(&_usb_receive_buffer);
 }
 
 /**
  * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in teh receive buffer (null if empty).
  * @return [uint8_t] Next Byte
  */
-uint8_t usb_msg_peek()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
-    return 0;
+uint8_t usb_msg_peek(){
+	return rb_get_C(&_usb_receive_buffer,0);
 }
 
 /**
