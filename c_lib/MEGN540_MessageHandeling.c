@@ -94,11 +94,9 @@ void Message_Handling_Task()
     char command = usb_msg_peek();
 
     // process command
-    switch( command )
-    {
+    switch(command){
         case '*':
-            if( usb_msg_length() >= MEGN540_Message_Len('*') )
-            {
+            if(usb_msg_length() >= MEGN540_Message_Len('*')){
                 //then process your times...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
@@ -117,8 +115,7 @@ void Message_Handling_Task()
             }
             break;
         case '/':
-            if( usb_msg_length() >= MEGN540_Message_Len('/') )
-            {
+            if(usb_msg_length() >= MEGN540_Message_Len('/')){
                 //then process your divide...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
@@ -137,8 +134,7 @@ void Message_Handling_Task()
             }
             break;
         case '+':
-            if( usb_msg_length() >= MEGN540_Message_Len('+') )
-            {
+            if(usb_msg_length() >= MEGN540_Message_Len('+')){
                 //then process your plus...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
@@ -157,8 +153,7 @@ void Message_Handling_Task()
             }
             break;
         case '-':
-            if( usb_msg_length() >= MEGN540_Message_Len('-') )
-            {
+            if(usb_msg_length() >= MEGN540_Message_Len('-')){
                 //then process your minus...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
@@ -177,14 +172,15 @@ void Message_Handling_Task()
             }
             break;
         case '~':
-            if( usb_msg_length() >= MEGN540_Message_Len('~') )
-            {
+            if(usb_msg_length() >= MEGN540_Message_Len('~')){
                 //then process your reset by setting the mf_restart flag 
                 mf_restart.active = true;
             }
             break;
         default:
             // What to do if you dont recognize the command character
+            usb_send_msg("cc", '?', &command, sizeof(command));
+            usb_flush_input_buffer();
             break;
     }
 }
@@ -225,9 +221,9 @@ uint8_t MEGN540_Message_Len( char cmd )
         case 'q': return	1; break;
         case 'Q': return 	5; break;
         case 'd': return 	9; break;
-        case 'D': return	13; break;
+        case 'D': return   13; break;
         case 'v': return	9; break;
-        case 'V': return	13; break;
+        case 'V': return   13; break;
         default:  return	0; break;
     }
 }
