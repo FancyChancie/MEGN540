@@ -56,6 +56,7 @@
  *  is responsible for the initial application hardware configuration.
  */
 
+#include <string.h>
 #include "SerialIO.h"
 
 // *** MEGN540  ***
