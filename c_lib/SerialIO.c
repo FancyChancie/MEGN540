@@ -392,11 +392,8 @@ uint8_t usb_msg_peek(){
  * (non-blocking) Function usb_msg_get removes and returns the next byte in the receive buffer (null if empty)
  * @return [uint8_t] Next Byte
  */
-uint8_t usb_msg_get()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
-    return 0;
+uint8_t usb_msg_get(){
+    return rb_pop_front(&_usb_receive_buffer);
 }
 
 /**
@@ -408,20 +405,22 @@ uint8_t usb_msg_get()
  * @param data_len
  * @return [bool]  True: sucess, False: not enough bytes available
  */
-bool usb_msg_read_into(void* p_obj, uint8_t data_len)
-{
-    // *** MEGN540  ***
-    //YOUR CODE HERE
-    return false;
+bool usb_msg_read_into(void* p_obj, uint8_t data_len){
+	if(rb_length_C(&_usb_receive_buffer) < data_len) return false;
+	
+	char* data = p_obj;
+	for (uint8_t i=0;i<data_len;i++){
+		data[i] = rb_pop_front_C(&_usb_receive_buffer);	
+	}
+	return true
 }
 
 /**
  * (non-blocking) Function usb_flush_input_buffer sets the length of the recieve buffer to zero and disreguards
  * any bytes that remaining.
  */
-void usb_flush_input_buffer()
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
+void usb_flush_input_buffer(){
+	while(rb_length_C(&_usb_receive_buffer) > 0){
+		rb_pop_front_C(&_usb_receive_buffer);
+	}
 }
-
