@@ -307,10 +307,7 @@ void usb_write_next_byte(){
  * (non-blocking) Function usb_send_byte Adds a character to the output buffer
  * @param byte [uint8_t] Data to send
  */
-void usb_send_byte(uint8_t byte)
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
+void usb_send_byte(uint8_t byte){
 	rb_push_front_C(&_usb_send_buffer,byte);
 }
 
@@ -319,10 +316,7 @@ void usb_send_byte(uint8_t byte)
  * @param p_data [void*] pointer to the data-object to be sent
  * @param data_len [uint8_t] size of data-object to be sent
  */
-void usb_send_data(void* p_data, uint8_t data_len)
-{
-    // *** MEGN540  ***
-    // YOUR CODE HERE
+void usb_send_data(void* p_data, uint8_t data_len){
 	for (uint8_t i=0;i<data_len;i++){
 		rb_push_front_C(&_usb_send_buffer,p_data[i]);
 	}
