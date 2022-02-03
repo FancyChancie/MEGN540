@@ -246,7 +246,7 @@ void usb_read_next_byte(){
 	if(USB_DeviceState != DEVICE_STATE_Configured) return;
 
     /* Select the Serial Rx Endpoint */
-	Endpoint_SelectEndpoint(CDC_RX_EPADDR);
+	//Endpoint_SelectEndpoint(CDC_RX_EPADDR);
 
     /* If selected OUT endpoint has received new packets AND there IS bytes in the endpoint,
     // add byte to the ring buffer and lengthen */
