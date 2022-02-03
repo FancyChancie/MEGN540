@@ -250,13 +250,13 @@ void usb_read_next_byte(){
 
     /* If selected OUT endpoint has received new packets AND there IS bytes in the endpoint,
     // add byte to the ring buffer and lengthen */
-    if(Endpoint_IsOUTReceived() && Endpoint_BytesInEndpoint){
+    if(Endpoint_IsOUTReceived() && Endpoint_BytesInEndpoint()){
         rb_push_back_C(&_usb_receive_buffer, Endpoint_Read_8());
     }
 
     /* If selected OUT endpoint has received new packets AND there is NOT any bytes in the endpoint,
     // finalize the stream transfer to send the last packet */
-    if(Endpoint_IsOUTReceived() && !Endpoint_BytesInEndpoint){
+    if(Endpoint_IsOUTReceived() && !Endpoint_BytesInEndpoint()){
         Endpoint_ClearOUT();
     }
 }
