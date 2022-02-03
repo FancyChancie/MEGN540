@@ -246,7 +246,7 @@ void usb_read_next_byte(){
 	if(USB_DeviceState != DEVICE_STATE_Configured) return;
 
     /* Select the Serial Rx Endpoint */
-	//Endpoint_SelectEndpoint(CDC_RX_EPADDR);
+	Endpoint_SelectEndpoint(CDC_RX_EPADDR);
 
     /* If selected OUT endpoint has received new packets AND there IS bytes in the endpoint,
     // add byte to the ring buffer and lengthen */
@@ -291,7 +291,7 @@ void usb_write_next_byte()
             // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
             Endpoint_ClearIN();
         }
-        
+
         // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
         while (tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
             // Pop off front of ring buffer & write
