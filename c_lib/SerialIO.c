@@ -191,18 +191,15 @@ void EVENT_USB_Device_ControlRequest(void)
 /** Function to manage CDC data transmission and reception to and from the host for the second CDC interface, which echoes back
  *  all data sent to it from the host.
  */
-void USB_Echo_Task(void)
-{
+void USB_Echo_Task(void){
 	/* Device must be connected and configured for the task to run */
-	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return;
+	if(USB_DeviceState != DEVICE_STATE_Configured) return;
 
 	/* Select the Serial Rx Endpoint */
 	Endpoint_SelectEndpoint(CDC_RX_EPADDR);
 
 	/* Check to see if any data has been received */
-	if (Endpoint_IsOUTReceived())
-	{
+	if(Endpoint_IsOUTReceived()){
 		/* Create a temp buffer big enough to hold the incoming endpoint packet */
 		uint8_t  Buffer[Endpoint_BytesInEndpoint()];
 
@@ -238,8 +235,7 @@ void USB_Echo_Task(void)
  * into a ring buffer for latter processing.
  *
  */
-void usb_read_next_byte()
-{
+void usb_read_next_byte(){
     // *** MEGN540  ***
     // YOUR CODE HERE!  You'll need to take inspiration from the USB_Echo_Task above but
     // will need to adjust to make it non blocking. You'll need to dig into the library to understand
@@ -247,11 +243,22 @@ void usb_read_next_byte()
     // register level.
 
     /* Device must be connected and configured for the task to run */
-	if (USB_DeviceState != DEVICE_STATE_Configured)
-	  return;
+	if(USB_DeviceState != DEVICE_STATE_Configured) return;
 
     /* Select the Serial Rx Endpoint */
 	Endpoint_SelectEndpoint(CDC_RX_EPADDR);
+
+    /* If selected OUT endpoint has received new packets AND there IS bytes in the endpoint,
+    // add byte to the ring buffer and lengthen */
+    if(Endpoint_IsOUTReceived() && Endpoint_BytesInEndpoint){
+        rb_push_back_C(&_usb_receive_buffer, Endpoint_Read_8());
+    }
+
+    /* If selected OUT endpoint has received new packets AND there is NOT any bytes in the endpoint,
+    // finalize the stream transfer to send the last packet */
+    if(Endpoint_IsOUTReceived() && !Endpoint_BytesInEndpoint){
+        Endpoint_ClearOUT();
+    }
 }
 
 /**
@@ -265,6 +272,37 @@ void usb_write_next_byte()
     // will need to adjust to make it non blocking. You'll need to dig into the library to understand
     // how the function above is working then interact at a slightly lower level, but still higher than
     // register level.
+
+    /* Device must be connected and configured for the task to run */
+	if(USB_DeviceState != DEVICE_STATE_Configured) return;
+
+	/* Select the Serial Tx Endpoint */
+	Endpoint_SelectEndpoint(CDC_TX_EPADDR);
+
+    /* If the send buffer has data AND the selected IN endpoint IS ready for a new packet to be sent*/
+    if(rb_length_C(&_usb_send_buffer) && Endpoint_IsINReady()){
+        // Get size (in bytes) of the CDC data interface TX and RX data endpoint banks
+        uint8_t tx_epsize_space_left = CDC_TXRX_EPSIZE;
+
+        //If there is NOT data available to write (i.e., tx_epsize_space_left == 0)
+        if(tx_epsize_space_left == 0)){
+            // Wait for endpoint to be ready for the next packet of data
+            Endpoint_WaitUntilReady();
+            // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+            Endpoint_ClearIN();
+        }
+        
+        // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
+        while (tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
+            // Pop off front of ring buffer & write
+            Endpoint_Write8(rb_pop_front_C(&_usb_send_buffer));
+            // Decerment tx_epsize_space_left to control while loop
+            tx_epsize_space_left--;
+        }
+        // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+        Endpoint_ClearIN();
+    }
+    
 }
 
 /**
