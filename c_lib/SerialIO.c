@@ -295,7 +295,7 @@ void usb_write_next_byte()
         // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
         while (tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
             // Pop off front of ring buffer & write
-            Endpoint_Write8(rb_pop_front_C(&_usb_send_buffer));
+            Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
             // Decerment tx_epsize_space_left to control while loop
             tx_epsize_space_left--;
         }
