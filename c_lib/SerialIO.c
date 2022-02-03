@@ -230,8 +230,7 @@ void USB_Echo_Task(void){
  *
  */
 void usb_read_next_byte(){
-    // *** MEGN540  ***
-    // YOUR CODE HERE!  You'll need to take inspiration from the USB_Echo_Task above but
+    // You'll need to take inspiration from the USB_Echo_Task above but
     // will need to adjust to make it non blocking. You'll need to dig into the library to understand
     // how the function above is working then interact at a slightly lower level, but still higher than
     // register level.
@@ -260,8 +259,7 @@ void usb_read_next_byte(){
  * ringbuffer and writes it to the USB port (if free).
  */
 void usb_write_next_byte(){
-    // *** MEGN540  ***
-    // YOUR CODE HERE!  You'll need to take inspiration from the USB_Echo_Task above but
+    // You'll need to take inspiration from the USB_Echo_Task above but
     // will need to adjust to make it non blocking. You'll need to dig into the library to understand
     // how the function above is working then interact at a slightly lower level, but still higher than
     // register level.
