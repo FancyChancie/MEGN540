@@ -364,6 +364,14 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len )
     //      usb_send_byte <-- cmd
     //      usb_send_data <-- p_data
     // FUNCTION END
+
+    // Figure out the total length of message
+    uint8_t length = 1+strlen(format)+sizeof(cmd)+data_len;
+    usb_send_byte(length);
+    usb_send_str(format);
+    usb_send_byte(cmd);
+    usb_send_data(p_data,data_len);
+
 }
 
 /**
