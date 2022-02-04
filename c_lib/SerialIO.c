@@ -85,8 +85,8 @@ void USB_Upkeep_Task(){
     // Get next byte from the USB hardware, send next byte to the USB hardware
     if(USB_DeviceState != DEVICE_STATE_Configured) return;
 
-    //usb_read_next_byte();
-    //usb_write_next_byte();
+    usb_read_next_byte();
+    usb_write_next_byte();
 }
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
@@ -105,6 +105,8 @@ void USB_SetupHardware(void){
 
 	// *** MEGN540  ***
 	// INITIALIZE RING BUFFERS AND OTHER DATA
+    rb_initialize_C(&_usb_receive_buffer);
+	rb_initialize_C(&_usb_send_buffer);
 }
 
 /** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs and
@@ -366,7 +368,7 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t msg_len = 2+strlen(format)+data_len;
+    uint8_t msg_len = strlen(format)+1 + data_len+1;
     usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
