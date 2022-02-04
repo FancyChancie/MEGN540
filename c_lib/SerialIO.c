@@ -345,12 +345,17 @@ void usb_send_str(char* p_str){
  *           All transmissions are host initiate.
  *      DATA: [Byte Array] Data byes that make up the message to be sent.
  *
- * @param format [c-str pointer] Pointer to interpertation string. e.g. ccf.  This alwasy starts with c because of the
+ * @param format [c-str pointer] Pointer to interpertation string. e.g. ccf.  This always starts with c because of the
  *          CMD char, here teh DATA object is then a char and a float.
  * @param cmd [char] Command this message is in respose to.
  * @param p_data [void*] pointer to the data-object to send.
  * @param data_len [uint8_t] size of the data-object to send. Remember sizeof() can help you with this!
  */
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
 void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // Remember c-strings are null terminated. Use the above functions to help!
 
@@ -365,12 +370,20 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t msg_len = strlen(format)+1 + data_len+1;
+    uint8_t msg_len = 1 + strlen(format) + 1 + data_len;
     usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
     usb_send_data(p_data,data_len);
 }
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
+/////I THINK OUR ERROR IS IN HERE/////
+
+
+
 
 /**
  * (non-blocking) Funtion usb_msg_length returns the number of bytes in the receive buffer awaiting processing.
