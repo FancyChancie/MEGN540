@@ -81,10 +81,8 @@ static CDC_LineEncoding_t LineEncoding1 = { .BaudRateBPS = 0,
 void USB_Upkeep_Task(){
     USB_USBTask();
 
-    // *** MEGN540  ***
-    // Get next byte from the USB hardware, send next byte to the USB hardware
     if(USB_DeviceState != DEVICE_STATE_Configured) return;
-
+    // Get next byte from the USB hardware, send next byte to the USB hardware
     usb_read_next_byte();
     usb_write_next_byte();
 }
@@ -233,7 +231,6 @@ void USB_Echo_Task(void){
 /**
  * (non-blocking) Function usb_read_next_byte takes the next USB byte and reads it
  * into a ring buffer for latter processing.
- *
  */
 void usb_read_next_byte(){
     // You'll need to take inspiration from the USB_Echo_Task above but
@@ -277,17 +274,9 @@ void usb_write_next_byte(){
 	Endpoint_SelectEndpoint(CDC_TX_EPADDR);
 
     /* If the selected IN endpoint IS ready for a new packet to be sent AND the send buffer has data*/
-    if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer) != 0){
+    if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer)){
         // Get size (in bytes) of the CDC data interface TX and RX data endpoint banks
         uint8_t tx_epsize_space_left = CDC_TXRX_EPSIZE;
-
-        //If there is NOT data available to write (i.e., tx_epsize_space_left == 0)
-        if(tx_epsize_space_left == 0){
-            // Wait for endpoint to be ready for the next packet of data
-            Endpoint_WaitUntilReady();
-            // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
-            Endpoint_ClearIN();
-        }
 
         // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
         while(tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
@@ -298,6 +287,14 @@ void usb_write_next_byte(){
         }
         // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
         Endpoint_ClearIN();
+
+        //If there is NOT data available to write (i.e., tx_epsize_space_left == 0)
+        if(tx_epsize_space_left == 0){
+            // Wait for endpoint to be ready for the next packet of data
+            Endpoint_WaitUntilReady();
+            // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+            Endpoint_ClearIN();
+        }
     }
 }
 
@@ -384,12 +381,7 @@ uint8_t usb_msg_length(){
 }
 
 /**
- * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in the
- * 
- * 
- 
- 
-  receive buffer (null if empty).
+ * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in the receive buffer (null if empty).
  * @return [uint8_t] Next Byte
  */
 uint8_t usb_msg_peek(){
