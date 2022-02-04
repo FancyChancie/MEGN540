@@ -77,8 +77,7 @@ void Message_Handling_Task(){
     // set a flag to have it done here.
 
     // Check to see if their is data in waiting
-    if(!usb_msg_length())
-        return; // nothing to process...
+    if(usb_msg_length() == 0) return; // nothing to process...
 
     // Get Your command designator without removal so if their are not enough bytes yet, the command persists
     char command = usb_msg_peek();
@@ -173,6 +172,7 @@ void Message_Handling_Task(){
             usb_flush_input_buffer();
             break;
     }
+    //usb_flush_input_buffer();
 }
 
 

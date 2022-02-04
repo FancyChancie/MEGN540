@@ -330,7 +330,7 @@ void usb_send_str(char* p_str){
 		i++;
 	}
     // Need to add 0 to the end to keep the Null character
-    //rb_push_back_C(&_usb_send_buffer,'\0');
+    rb_push_back_C(&_usb_send_buffer,'\0');
 }
 
 /**
@@ -365,7 +365,7 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t msg_len = 3 + strlen(format) + data_len;
+    uint8_t msg_len = 2 + strlen(format) + data_len;
     usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
