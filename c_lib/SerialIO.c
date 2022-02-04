@@ -60,8 +60,8 @@
 
 // *** MEGN540  ***
 // Ring Buffer Objects
-static struct RingBuffer_C _usb_receive_buffer;
-static struct RingBuffer_C _usb_send_buffer;
+static struct Ring_Buffer_C _usb_receive_buffer;
+static struct Ring_Buffer_C _usb_send_buffer;
 
 
 /** Contains the current baud rate and other settings of the first virtual serial port. While this demo does not use
@@ -101,6 +101,8 @@ void USB_SetupHardware(void){
 
 	// *** MEGN540  ***
 	// INITIALIZE RING BUFFERS AND OTHER DATA
+    rb_initialize_C(&_usb_receive_buffer);
+    rb_initialize_C(&_usb_send_buffer);
 }
 
 /** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs and
@@ -276,7 +278,7 @@ void usb_write_next_byte(){
         uint8_t tx_epsize_space_left = CDC_TXRX_EPSIZE;
 
         //If there is NOT data available to write (i.e., tx_epsize_space_left == 0)
-        if(tx_epsize_space_left == 0)){
+        if(tx_epsize_space_left == 0){
             // Wait for endpoint to be ready for the next packet of data
             Endpoint_WaitUntilReady();
             // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
@@ -300,7 +302,7 @@ void usb_write_next_byte(){
  * @param byte [uint8_t] Data to send
  */
 void usb_send_byte(uint8_t byte){
-	rb_push_front_C(&_usb_send_buffer,byte);
+	rb_push_back_C(&_usb_send_buffer,byte);
 }
 
 /**
@@ -309,9 +311,9 @@ void usb_send_byte(uint8_t byte){
  * @param data_len [uint8_t] size of data-object to be sent
  */
 void usb_send_data(void* p_data, uint8_t data_len){
-
-	for (uint8_t i=0;i<data_len;i++){
-		rb_push_front_C(&_usb_send_buffer,p_data[i]);
+	//char* data = p_data;
+    for(uint8_t i=0;i<data_len;i++){
+		rb_push_back_C(&_usb_send_buffer,&p_data[i]);
 	}
 }
 
@@ -324,7 +326,7 @@ void usb_send_str(char* p_str){
 	uint8_t i = 0;
 	
 	while(p_str[i] != '\0'){
-		rb_push_front_C(&_usb_send_buffer,p_str[i]);
+		rb_push_back_C(&_usb_send_buffer,p_str[i]);
 		i++;
 	}
 }
@@ -377,11 +379,11 @@ uint8_t usb_msg_length(){
 }
 
 /**
- * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in teh receive buffer (null if empty).
+ * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in the receive buffer (null if empty).
  * @return [uint8_t] Next Byte
  */
 uint8_t usb_msg_peek(){
-    return rb_get_C(&_usb_receive_buffer); 
+    return rb_get_C(&_usb_receive_buffer,0); 
 }
 
 /**
@@ -402,7 +404,7 @@ uint8_t usb_msg_get(){
  * @return [bool]  True: sucess, False: not enough bytes available
  */
 bool usb_msg_read_into(void* p_obj, uint8_t data_len){
-    if(rb_length_C(&_usb_receive_buffer < data_len) return false;
+    if(rb_length_C(&_usb_receive_buffer < data_len)){return false;}
     
     char* data = p_obj;
     for(uint8_t i=0;i<data_len;i++){
