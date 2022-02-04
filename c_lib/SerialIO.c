@@ -60,8 +60,8 @@
 
 // *** MEGN540  ***
 // Ring Buffer Objects
-static struct RingBuffer_C _usb_receive_buffer;
-static struct RingBuffer_C _usb_send_buffer;
+static struct Ring_Buffer_C _usb_receive_buffer;
+static struct Ring_Buffer_C _usb_send_buffer;
 
 
 /** Contains the current baud rate and other settings of the first virtual serial port. While this demo does not use
@@ -85,8 +85,8 @@ void USB_Upkeep_Task(){
     // Get next byte from the USB hardware, send next byte to the USB hardware
     if(USB_DeviceState != DEVICE_STATE_Configured) return;
 
-    usb_read_next_byte();
-    usb_write_next_byte();
+    //usb_read_next_byte();
+    //usb_write_next_byte();
 }
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
@@ -366,7 +366,7 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t msg_len = (strlen(format)+1) + sizeof(cmd) + data_len;
+    uint8_t msg_len = 2+strlen(format)+data_len;
     usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
@@ -382,7 +382,12 @@ uint8_t usb_msg_length(){
 }
 
 /**
- * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in teh receive buffer (null if empty).
+ * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in the
+ * 
+ * 
+ 
+ 
+  receive buffer (null if empty).
  * @return [uint8_t] Next Byte
  */
 uint8_t usb_msg_peek(){
