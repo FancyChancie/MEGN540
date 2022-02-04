@@ -351,11 +351,6 @@ void usb_send_str(char* p_str){
  * @param p_data [void*] pointer to the data-object to send.
  * @param data_len [uint8_t] size of the data-object to send. Remember sizeof() can help you with this!
  */
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
 void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // Remember c-strings are null terminated. Use the above functions to help!
 
@@ -376,14 +371,6 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     usb_send_byte(cmd);
     usb_send_data(p_data,data_len);
 }
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
-/////I THINK OUR ERROR IS IN HERE/////
-
-
-
 
 /**
  * (non-blocking) Funtion usb_msg_length returns the number of bytes in the receive buffer awaiting processing.

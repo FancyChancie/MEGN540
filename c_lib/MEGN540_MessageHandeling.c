@@ -50,8 +50,7 @@ bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag){
     // What is the logic to indicate an action should be executed?
     // For Lab 1, ignore the timing part.
     
-    p_flag->active = true;
-    return false;
+    return p_flag->active;
 }
 
 
