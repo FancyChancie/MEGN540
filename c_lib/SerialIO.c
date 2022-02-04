@@ -370,7 +370,8 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t msg_len = 1 + strlen(format) + 1 + data_len;
+    uint8_t fmt_len = strlen(format) + 1;
+    uint8_t msg_len = 1 + fmt_len + data_len;
     usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
