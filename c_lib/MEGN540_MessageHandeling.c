@@ -45,7 +45,6 @@ static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag){
  * @return [bool] True for execute action, False for skip action
  */
 bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag){
-    // *** MEGN540  ***
     // THIS FUNCTION WILL BE MOST USEFUL FORM LAB 2 ON.
     // What is the logic to indicate an action should be executed?
     // For Lab 1, ignore the timing part.
@@ -96,7 +95,7 @@ void Message_Handling_Task(){
                 // Copy the bytes from the usb receive buffer into our structure so we can use the information
                 usb_msg_read_into( &data, sizeof(data) );
 
-                // Do the thing you need to do. Here we want to multiply
+                // Do the thing you need to do. Here we want to multiply.
                 float ret_val = data.v1 * data.v2;
 
                 // send response right here if appropriate.
@@ -107,7 +106,7 @@ void Message_Handling_Task(){
             if(usb_msg_length() >= MEGN540_Message_Len('/')){
                 //then process your divide...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a / so no need to save it as a variable
 
                 // Build a meaningful structure to put your data in. Here we want two floats.
                 struct __attribute__((__packed__)) { float v1; float v2; } data;
@@ -115,7 +114,7 @@ void Message_Handling_Task(){
                 // Copy the bytes from the usb receive buffer into our structure so we can use the information
                 usb_msg_read_into( &data, sizeof(data) );
 
-                // Do the thing you need to do. Here we want to multiply
+                // Do the thing you need to do. Here we want to divide.
                 float ret_val = data.v1 / data.v2;
 
                 // send response right here if appropriate.
@@ -126,7 +125,7 @@ void Message_Handling_Task(){
             if(usb_msg_length() >= MEGN540_Message_Len('+')){
                 //then process your plus...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a + so no need to save it as a variable
 
                 // Build a meaningful structure to put your data in. Here we want two floats.
                 struct __attribute__((__packed__)) { float v1; float v2; } data;
@@ -134,7 +133,7 @@ void Message_Handling_Task(){
                 // Copy the bytes from the usb receive buffer into our structure so we can use the information
                 usb_msg_read_into( &data, sizeof(data) );
 
-                // Do the thing you need to do. Here we want to multiply
+                // Do the thing you need to do. Here we want to add.
                 float ret_val = data.v1 + data.v2;
 
                 // send response right here if appropriate.
@@ -145,7 +144,7 @@ void Message_Handling_Task(){
             if(usb_msg_length() >= MEGN540_Message_Len('-')){
                 //then process your minus...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
 
                 // Build a meaningful structure to put your data in. Here we want two floats.
                 struct __attribute__((__packed__)) { float v1; float v2; } data;
@@ -153,7 +152,7 @@ void Message_Handling_Task(){
                 // Copy the bytes from the usb receive buffer into our structure so we can use the information
                 usb_msg_read_into( &data, sizeof(data) );
 
-                // Do the thing you need to do. Here we want to multiply
+                // Do the thing you need to do. Here we want to subtract.
                 float ret_val = data.v1 - data.v2;
 
                 // send response right here if appropriate.
@@ -172,7 +171,6 @@ void Message_Handling_Task(){
             usb_flush_input_buffer();
             break;
     }
-    //usb_flush_input_buffer();
 }
 
 

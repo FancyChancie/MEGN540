@@ -325,12 +325,12 @@ void usb_send_data(void* p_data, uint8_t data_len){
 void usb_send_str(char* p_str){
     // Remember c-srtings are null terminated.
 	uint8_t i = 0;
-	while(p_str[i] != '\0'){
+	while(p_str[i] != 0){
 		rb_push_back_C(&_usb_send_buffer,p_str[i]);
 		i++;
 	}
     // Need to add 0 to the end to keep the Null character
-    rb_push_back_C(&_usb_send_buffer,'\0');
+    rb_push_back_C(&_usb_send_buffer,0);
 }
 
 /**
@@ -403,7 +403,7 @@ uint8_t usb_msg_get(){
  *
  * @param buff
  * @param data_len
- * @return [bool]  True: sucess, False: not enough bytes available
+ * @return [bool]  True: success, False: not enough bytes available
  */
 bool usb_msg_read_into(void* p_obj, uint8_t data_len){
     if(usb_msg_length() < data_len) return false;
