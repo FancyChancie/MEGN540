@@ -277,7 +277,7 @@ void usb_write_next_byte(){
 	Endpoint_SelectEndpoint(CDC_TX_EPADDR);
 
     /* If the selected IN endpoint IS ready for a new packet to be sent AND the send buffer has data*/
-    if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer)){
+    if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer) != 0){
         // Get size (in bytes) of the CDC data interface TX and RX data endpoint banks
         uint8_t tx_epsize_space_left = CDC_TXRX_EPSIZE;
 
@@ -414,7 +414,7 @@ uint8_t usb_msg_get(){
  * @return [bool]  True: sucess, False: not enough bytes available
  */
 bool usb_msg_read_into(void* p_obj, uint8_t data_len){
-    if(usb_msg_length < data_len) return false;
+    if(usb_msg_length() < data_len) return false;
     
     char* msg = p_obj;
     for(uint8_t i=0;i<data_len;i++){
