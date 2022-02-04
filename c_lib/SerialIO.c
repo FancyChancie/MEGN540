@@ -83,6 +83,10 @@ void USB_Upkeep_Task(){
 
     // *** MEGN540  ***
     // Get next byte from the USB hardware, send next byte to the USB hardware
+    if(USB_DeviceState != DEVICE_STATE_Configured) return;
+
+    usb_read_next_byte();
+    usb_write_next_byte();
 }
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
@@ -270,13 +274,13 @@ void usb_write_next_byte(){
 	/* Select the Serial Tx Endpoint */
 	Endpoint_SelectEndpoint(CDC_TX_EPADDR);
 
-    /* If the send buffer has data AND the selected IN endpoint IS ready for a new packet to be sent*/
-    if(rb_length_C(&_usb_send_buffer) && Endpoint_IsINReady()){
+    /* If the selected IN endpoint IS ready for a new packet to be sent AND the send buffer has data*/
+    if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer)){
         // Get size (in bytes) of the CDC data interface TX and RX data endpoint banks
         uint8_t tx_epsize_space_left = CDC_TXRX_EPSIZE;
 
         //If there is NOT data available to write (i.e., tx_epsize_space_left == 0)
-        if(tx_epsize_space_left == 0)){
+        if(tx_epsize_space_left == 0){
             // Wait for endpoint to be ready for the next packet of data
             Endpoint_WaitUntilReady();
             // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
@@ -284,7 +288,7 @@ void usb_write_next_byte(){
         }
 
         // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
-        while (tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
+        while(tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
             // Pop off front of ring buffer & write
             Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
             // Decerment tx_epsize_space_left to control while loop
@@ -300,7 +304,7 @@ void usb_write_next_byte(){
  * @param byte [uint8_t] Data to send
  */
 void usb_send_byte(uint8_t byte){
-	rb_push_front_C(&_usb_send_buffer,byte);
+	rb_push_back_C(&_usb_send_buffer,byte);
 }
 
 /**
@@ -309,9 +313,9 @@ void usb_send_byte(uint8_t byte){
  * @param data_len [uint8_t] size of data-object to be sent
  */
 void usb_send_data(void* p_data, uint8_t data_len){
-
-	for (uint8_t i=0;i<data_len;i++){
-		rb_push_front_C(&_usb_send_buffer,p_data[i]);
+	char* data = p_data;
+    for(uint8_t i=0;i<data_len;i++){
+		rb_push_back_C(&_usb_send_buffer,data[i]);
 	}
 }
 
@@ -322,11 +326,12 @@ void usb_send_data(void* p_data, uint8_t data_len){
 void usb_send_str(char* p_str){
     // Remember c-srtings are null terminated.
 	uint8_t i = 0;
-	
-	while(p_str[i] != '\0'){
-		rb_push_front_C(&_usb_send_buffer,p_str[i]);
+	while(p_str[i] != 0){
+		rb_push_back_C(&_usb_send_buffer,p_str[i]);
 		i++;
 	}
+    // Need to add 0 to the end to keep the Null character
+    rb_push_back_C(&_usb_send_buffer,0);
 }
 
 /**
@@ -361,8 +366,8 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t length = 1+strlen(format)+sizeof(cmd)+data_len;
-    usb_send_byte(length);
+    uint8_t msg_len = (strlen(format)+1) + sizeof(cmd) + data_len;
+    usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
     usb_send_data(p_data,data_len);
@@ -381,7 +386,7 @@ uint8_t usb_msg_length(){
  * @return [uint8_t] Next Byte
  */
 uint8_t usb_msg_peek(){
-    return rb_get_C(&_usb_receive_buffer); 
+    return rb_get_C(&_usb_receive_buffer,0); 
 }
 
 /**
@@ -402,11 +407,11 @@ uint8_t usb_msg_get(){
  * @return [bool]  True: sucess, False: not enough bytes available
  */
 bool usb_msg_read_into(void* p_obj, uint8_t data_len){
-    if(rb_length_C(&_usb_receive_buffer < data_len) return false;
+    if(usb_msg_length < data_len) return false;
     
-    char* data = p_obj;
+    char* msg = p_obj;
     for(uint8_t i=0;i<data_len;i++){
-        data[i] = rb_pop_front_C(&_usb_receive_buffer);
+        msg[i] = rb_pop_front_C(&_usb_receive_buffer);
     }
     return true;
 }
@@ -416,7 +421,5 @@ bool usb_msg_read_into(void* p_obj, uint8_t data_len){
  * any bytes that remaining.
  */
 void usb_flush_input_buffer(){
-    while(rb_length_C>0){
-        rb_pop_front_C(&_usb_receive_buffer);
-    }
+    rb_initialize_C(&_usb_receive_buffer)
 }
