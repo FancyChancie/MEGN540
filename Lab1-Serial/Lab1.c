@@ -37,9 +37,9 @@
 int main(void){
     USB_SetupHardware();
     GlobalInterruptEnable();
-    Message_Handling_Init(); // initialize message handling
+    Message_Handling_Init(); // Initialize message handling
 
-    while( true ){
+    while(true){
         USB_Upkeep_Task();
 
         //USB_Echo_Task();// you'll want to remove this once you get your serial sorted
@@ -48,6 +48,9 @@ int main(void){
         // Below here you'll process state-machine flags.
         if(MSG_FLAG_Execute(&mf_restart)){
             // re initialzie your stuff...
+            USB_SetupHardware();
+            GlobalInterruptEnable();
+            Message_Handling_Init(); // Initialize message handling
         }
     }
 }
