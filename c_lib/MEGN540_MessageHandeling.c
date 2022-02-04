@@ -50,10 +50,7 @@ bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag){
     // What is the logic to indicate an action should be executed?
     // For Lab 1, ignore the timing part.
     
-    if(p_flag){
-        return true;
-    }
-    return false;
+    return p_flag->active;
 }
 
 
@@ -62,13 +59,10 @@ bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag){
  * conditions.
  */
 void Message_Handling_Init(){
-    // This is where you'd initialize any
-    // state machine flags to control your main-loop state machine
+    // This is where you'd initialize any state machine flags to control your main-loop state machine
 
     MSG_FLAG_Init(&mf_restart); // needs to be initialized to the default values.
-    MSG_FLAG_Init(&mf_loop_timer);
-    MSG_FLAG_Init(&mf_time_float_send);
-    MSG_FLAG_Init(&mf_send_time); 
+
     return;
 }
 
@@ -84,7 +78,7 @@ void Message_Handling_Task(){
     // set a flag to have it done here.
 
     // Check to see if their is data in waiting
-    if( !usb_msg_length() )
+    if(!usb_msg_length())
         return; // nothing to process...
 
     // Get Your command designator without removal so if their are not enough bytes yet, the command persists
@@ -176,7 +170,7 @@ void Message_Handling_Task(){
             break;
         default:
             // What to do if you dont recognize the command character
-            usb_send_msg("cc", '?', &command, sizeof(command));
+            usb_send_msg("cc", command, "?", sizeof(command));
             usb_flush_input_buffer();
             break;
     }
