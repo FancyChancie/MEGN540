@@ -421,5 +421,5 @@ bool usb_msg_read_into(void* p_obj, uint8_t data_len){
  * any bytes that remaining.
  */
 void usb_flush_input_buffer(){
-    rb_initialize_C(&_usb_receive_buffer)
+    rb_initialize_C(&_usb_receive_buffer);
 }
