@@ -50,7 +50,7 @@ int main(void){
             // re initialzie your stuff...
             USB_SetupHardware();
             GlobalInterruptEnable();
-            Message_Handling_Init(); // Initialize message handling
+            Message_Handling_Init();
         }
     }
 }
