@@ -121,7 +121,7 @@ void Message_Handling_Task(){
                 struct __attribute__((__packed__)) { float v1; float v2; } data;
 
                 // Copy the bytes from the usb receive buffer into our structure so we can use the information
-                usb_msg_read_into( &data, sizeof(data) );
+                usb_msg_read_into(&data, sizeof(data) );
 
                 // Do the thing you need to do. Here we want to multiply
                 float ret_val = data.v1 / data.v2;
@@ -176,7 +176,7 @@ void Message_Handling_Task(){
             break;
         default:
             // What to do if you dont recognize the command character
-            usb_send_msg("cc", '?', &command, sizeof(command));
+            usb_send_msg("c", '?', command, sizeof(command));
             usb_flush_input_buffer();
             break;
     }
