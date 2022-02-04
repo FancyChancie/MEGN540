@@ -325,12 +325,12 @@ void usb_send_data(void* p_data, uint8_t data_len){
 void usb_send_str(char* p_str){
     // Remember c-srtings are null terminated.
 	uint8_t i = 0;
-	while(p_str[i] != 0){
+	while(p_str[i] != '\0'){
 		rb_push_back_C(&_usb_send_buffer,p_str[i]);
 		i++;
 	}
     // Need to add 0 to the end to keep the Null character
-    rb_push_back_C(&_usb_send_buffer,0);
+    //rb_push_back_C(&_usb_send_buffer,'\0');
 }
 
 /**

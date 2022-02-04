@@ -35,6 +35,7 @@ void Initialize(){
     USB_SetupHardware();
     GlobalInterruptEnable();
     Message_Handling_Init();
+    usb_flush_input_buffer();
 }
 
 /** Main program entry point. This routine configures the hardware required by the application, then
