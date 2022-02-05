@@ -33,9 +33,6 @@
 
 static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag){
     p_flag->active = false;
-    p_flag->duration = -1;
-    p_flag->last_trigger_time.millisec=0;
-    p_flag->last_trigger_time.microsec=0;
 }
 
 

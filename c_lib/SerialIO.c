@@ -150,37 +150,30 @@ void EVENT_USB_Device_ControlRequest(void){
 	void* LineEncodingData = &LineEncoding1;
 
 	/* Process CDC specific control requests */
-	switch (USB_ControlRequest.bRequest)
-	{
+	switch (USB_ControlRequest.bRequest){
 		case CDC_REQ_GetLineEncoding:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE)){
 				Endpoint_ClearSETUP();
 
 				/* Write the line coding data to the control endpoint */
 				Endpoint_Write_Control_Stream_LE(LineEncodingData, sizeof(CDC_LineEncoding_t));
 				Endpoint_ClearOUT();
 			}
-
 			break;
 		case CDC_REQ_SetLineEncoding:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE)){
 				Endpoint_ClearSETUP();
 
 				/* Read the line coding data in from the host into the global struct */
 				Endpoint_Read_Control_Stream_LE(LineEncodingData, sizeof(CDC_LineEncoding_t));
 				Endpoint_ClearIN();
 			}
-
 			break;
 		case CDC_REQ_SetControlLineState:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE)){
 				Endpoint_ClearSETUP();
 				Endpoint_ClearStatusStage();
 			}
-
 			break;
 	}
 }
@@ -365,7 +358,7 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t msg_len = 2 + strlen(format) + data_len;
+    uint8_t msg_len =  2 + strlen(format) + data_len;
     usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
