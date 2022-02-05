@@ -209,4 +209,3 @@ void rb_print_data_C(struct Ring_Buffer_C *p_buf)
     printf("-------END CHAR RINGBUFFER INFO---------\n\n");
 
 }
-
