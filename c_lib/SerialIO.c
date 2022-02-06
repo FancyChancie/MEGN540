@@ -269,17 +269,20 @@ void usb_write_next_byte(){
     /* If the selected IN endpoint IS ready for a new packet to be sent AND the send buffer has data*/
     if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer) != 0){
         // While there IS data in usb_send_buffer, write data
-        while(rb_length_C(&_usb_send_buffer) != 0){
+        //while(rb_length_C(&_usb_send_buffer) != 0){
+        while(usb_msg_length()){
             // Pop off front of ring buffer & write
-            Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
+            //Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
+            Endpoint_Write_8(usb_msg_get());
         }
         // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
         Endpoint_ClearIN();
 
         //If there is NOT data in usb_ring_buffer
-        if(!rb_length_C(&_usb_send_buffer)){
+        //if(!rb_length_C(&_usb_send_buffer)){
+        if(!usb_msg_length())
             // Wait for endpoint to be ready for the next packet of data
-            Endpoint_WaitUntilReady();
+            seb();
             // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
             Endpoint_ClearIN();
         }

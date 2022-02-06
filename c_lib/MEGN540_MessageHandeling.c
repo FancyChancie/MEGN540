@@ -58,7 +58,6 @@ void Message_Handling_Init(){
     // This is where you'd initialize any state machine flags to control your main-loop state machine
 
     MSG_FLAG_Init(&mf_restart); // needs to be initialized to the default values.
-    return;
 }
 
 /**
