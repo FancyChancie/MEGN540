@@ -227,7 +227,7 @@ void USB_Echo_Task(void){
  */
 void usb_read_next_byte(){
     // You'll need to take inspiration from the USB_Echo_Task above but
-    // will need to adjust to make it non blocking. You'll need to dig into the library to understand
+    // will need to adjust to make it non-blocking. You'll need to dig into the library to understand
     // how the function above is working then interact at a slightly lower level, but still higher than
     // register level.
 
@@ -256,7 +256,7 @@ void usb_read_next_byte(){
  */
 void usb_write_next_byte(){
     // You'll need to take inspiration from the USB_Echo_Task above but
-    // will need to adjust to make it non blocking. You'll need to dig into the library to understand
+    // will need to adjust to make it non-blocking. You'll need to dig into the library to understand
     // how the function above is working then interact at a slightly lower level, but still higher than
     // register level.
 
@@ -323,7 +323,7 @@ void usb_send_str(char* p_str){
 
 /**
  * (non-blocking) Function usb_send_msg sends a message according to the MEGN540 USB message format.
- *      [MSG Length] [Format C-Str][Host Initiating CMD Char][DATA]
+ *      [MSG Length][Format C-Str][Host Initiating CMD Char][DATA]
  *      MSG Length: [uint8_t] Number of bytes to follow in full message.
  *              Length of: Format C-String + 1 (CMD Char) + Length of DATA Array
  *      Format C-Str: [char*] null-terminated c-string defining the interpertation of the data bytes.
@@ -343,7 +343,7 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // Remember c-strings are null terminated. Use the above functions to help!
 
     // FUNCTION BEGIN
-    //  Calculate the length of the format string taking advantage of the null-termination (+1 for null termination)
+    //  Calculate the length of the format string taking into account the null-termination (+1 for null termination)
     //  Calculate the total message length:  1 + format_length + data_len
     //  Send data:
     //      usb_send_byte <-- length
@@ -352,9 +352,11 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     //      usb_send_data <-- p_data
     // FUNCTION END
 
-    // Figure out the total length of message
+    // Calculate the length of the format string
     uint8_t fmt_len = strlen(format) + 1;
+    // Calculate the total message length
     uint8_t msg_len = 1 + fmt_len + data_len;
+
     usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
@@ -395,12 +397,14 @@ uint8_t usb_msg_get(){
  * @return [bool]  True: success, False: not enough bytes available
  */
 bool usb_msg_read_into(void* p_obj, uint8_t data_len){
+    // If not enough bytes available
     if(usb_msg_length() < data_len) return false;
     
     char* msg = p_obj;
     for(uint8_t i=0;i<data_len;i++){
         msg[i] = rb_pop_front_C(&_usb_receive_buffer);
     }
+    // If success
     return true;
 }
 
