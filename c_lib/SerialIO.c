@@ -269,7 +269,7 @@ void usb_write_next_byte(){
     /* If the selected IN endpoint IS ready for a new packet to be sent AND the send buffer has data*/
     if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer) != 0){
         // While there IS data in usb_send_buffer, write data
-        while(rb_length_C(&_usb_send_buffer) != 0){{
+        while(rb_length_C(&_usb_send_buffer) != 0){
             // Pop off front of ring buffer & write
             Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
         }
