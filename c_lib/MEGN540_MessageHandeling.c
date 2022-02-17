@@ -155,6 +155,22 @@ void Message_Handling_Task(){
                 usb_send_msg("cf", command, &ret_val, sizeof(ret_val));
             }
             break;
+        case 't':
+            if(usb_msg_length() >= MEGN540_Message_Len('t')){
+                // then process your minus...
+                // remove the command from the usb recieved buffer using the usb_msg_get() function
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
+
+            }
+            break;
+        case 'T':
+            if(usb_msg_length() >= MEGN540_Message_Len('T')){
+                // then process your minus...
+                // remove the command from the usb recieved buffer using the usb_msg_get() function
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
+
+            }
+            break;
         case '~':
             if(usb_msg_length() >= MEGN540_Message_Len('~')){
                 // then process your reset by setting the mf_restart flag 
