@@ -161,6 +161,7 @@ void Message_Handling_Task(){
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
 
+                
             }
             break;
         case 'T':
@@ -169,6 +170,7 @@ void Message_Handling_Task(){
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
 
+                struct __attribute__((__packed__)) { char c; float v; } data;
             }
             break;
         case '~':
