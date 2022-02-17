@@ -55,11 +55,14 @@ void SetupTimer0()
     // YOUR CODE HERE
     // Enable timing, setup prescalers, etc.
 
+    /*TCCR0B CS00 = 1;
+    TCCR0B CS01 = 1;
+    TIMSK0 OCIE0A = 1;*/
+
     TCNT0 = 0;
     OCR0A = 249;
-    TCCR0B CS00 = 1;
-    TCCR0B CS01 = 1;
-    TIMSK0 OCIE0A = 1;
+    TCCR0B = (1<<CS00)|(1<<CS01);
+    TIMSK0 = 1<<OCIE0A;
 
     _count_ms= 0;
     ms_counter_1 = 0;
