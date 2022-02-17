@@ -75,13 +75,6 @@ void SetupTimer0()
  * This function gets the current time and returns it in a Time_t structure.
  * @return
  */
-float  GetTimeSec()
-{
-    Time_t time = GetTime();
-
-    return (float) time.millisec / 1000;
-}
-
 Time_t GetTime()
 {
     // *** MEGN540 Lab 2 ***
@@ -92,6 +85,13 @@ Time_t GetTime()
                  };
 
     return time;
+}
+
+float  GetTimeSec()
+{
+    Time_t time = GetTime();
+
+    return (float) time.millisec / 1000;
 }
 
 /**
