@@ -1,0 +1,1 @@
+/usr/bin/avr-gcc -Os  -mmcu=atmega32u4 -Wl,--gc-sections -mrelax -Wl,-Map,Lab0-atmega32u4.map CMakeFiles/Lab0-atmega32u4.elf.dir/Lab0-blink.c.obj CMakeFiles/Lab0-atmega32u4.elf.dir/led_interface.c.obj  -o Lab0-atmega32u4.elf  ../libLUFA_USB-atmega32u4.a ../libMEGN540-atmega32u4.a ../libLUFA_USB-atmega32u4.a 

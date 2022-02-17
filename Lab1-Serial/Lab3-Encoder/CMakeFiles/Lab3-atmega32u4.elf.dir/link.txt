@@ -1,0 +1,1 @@
+/usr/bin/avr-gcc -Os  -mmcu=atmega32u4 -Wl,--gc-sections -mrelax -Wl,-Map,Lab3-atmega32u4.map CMakeFiles/Lab3-atmega32u4.elf.dir/Lab3-Encoder.c.obj  -o Lab3-atmega32u4.elf  ../libLUFA_USB-atmega32u4.a ../libMEGN540-atmega32u4.a ../libLUFA_USB-atmega32u4.a 

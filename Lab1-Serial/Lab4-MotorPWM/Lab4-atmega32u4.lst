@@ -1,0 +1,117 @@
+
+Lab4-atmega32u4.elf:     file format elf32-avr
+
+
+Disassembly of section .text:
+
+00000000 <__vectors>:
+   0:	55 c0       	rjmp	.+170    	; 0xac <__ctors_end>
+   2:	00 00       	nop
+   4:	5b c0       	rjmp	.+182    	; 0xbc <__bad_interrupt>
+   6:	00 00       	nop
+   8:	59 c0       	rjmp	.+178    	; 0xbc <__bad_interrupt>
+   a:	00 00       	nop
+   c:	57 c0       	rjmp	.+174    	; 0xbc <__bad_interrupt>
+   e:	00 00       	nop
+  10:	55 c0       	rjmp	.+170    	; 0xbc <__bad_interrupt>
+  12:	00 00       	nop
+  14:	53 c0       	rjmp	.+166    	; 0xbc <__bad_interrupt>
+  16:	00 00       	nop
+  18:	51 c0       	rjmp	.+162    	; 0xbc <__bad_interrupt>
+  1a:	00 00       	nop
+  1c:	4f c0       	rjmp	.+158    	; 0xbc <__bad_interrupt>
+  1e:	00 00       	nop
+  20:	4d c0       	rjmp	.+154    	; 0xbc <__bad_interrupt>
+  22:	00 00       	nop
+  24:	4b c0       	rjmp	.+150    	; 0xbc <__bad_interrupt>
+  26:	00 00       	nop
+  28:	49 c0       	rjmp	.+146    	; 0xbc <__bad_interrupt>
+  2a:	00 00       	nop
+  2c:	47 c0       	rjmp	.+142    	; 0xbc <__bad_interrupt>
+  2e:	00 00       	nop
+  30:	45 c0       	rjmp	.+138    	; 0xbc <__bad_interrupt>
+  32:	00 00       	nop
+  34:	43 c0       	rjmp	.+134    	; 0xbc <__bad_interrupt>
+  36:	00 00       	nop
+  38:	41 c0       	rjmp	.+130    	; 0xbc <__bad_interrupt>
+  3a:	00 00       	nop
+  3c:	3f c0       	rjmp	.+126    	; 0xbc <__bad_interrupt>
+  3e:	00 00       	nop
+  40:	3d c0       	rjmp	.+122    	; 0xbc <__bad_interrupt>
+  42:	00 00       	nop
+  44:	3b c0       	rjmp	.+118    	; 0xbc <__bad_interrupt>
+  46:	00 00       	nop
+  48:	39 c0       	rjmp	.+114    	; 0xbc <__bad_interrupt>
+  4a:	00 00       	nop
+  4c:	37 c0       	rjmp	.+110    	; 0xbc <__bad_interrupt>
+  4e:	00 00       	nop
+  50:	35 c0       	rjmp	.+106    	; 0xbc <__bad_interrupt>
+  52:	00 00       	nop
+  54:	33 c0       	rjmp	.+102    	; 0xbc <__bad_interrupt>
+  56:	00 00       	nop
+  58:	31 c0       	rjmp	.+98     	; 0xbc <__bad_interrupt>
+  5a:	00 00       	nop
+  5c:	2f c0       	rjmp	.+94     	; 0xbc <__bad_interrupt>
+  5e:	00 00       	nop
+  60:	2d c0       	rjmp	.+90     	; 0xbc <__bad_interrupt>
+  62:	00 00       	nop
+  64:	2b c0       	rjmp	.+86     	; 0xbc <__bad_interrupt>
+  66:	00 00       	nop
+  68:	29 c0       	rjmp	.+82     	; 0xbc <__bad_interrupt>
+  6a:	00 00       	nop
+  6c:	27 c0       	rjmp	.+78     	; 0xbc <__bad_interrupt>
+  6e:	00 00       	nop
+  70:	25 c0       	rjmp	.+74     	; 0xbc <__bad_interrupt>
+  72:	00 00       	nop
+  74:	23 c0       	rjmp	.+70     	; 0xbc <__bad_interrupt>
+  76:	00 00       	nop
+  78:	21 c0       	rjmp	.+66     	; 0xbc <__bad_interrupt>
+  7a:	00 00       	nop
+  7c:	1f c0       	rjmp	.+62     	; 0xbc <__bad_interrupt>
+  7e:	00 00       	nop
+  80:	1d c0       	rjmp	.+58     	; 0xbc <__bad_interrupt>
+  82:	00 00       	nop
+  84:	1b c0       	rjmp	.+54     	; 0xbc <__bad_interrupt>
+  86:	00 00       	nop
+  88:	19 c0       	rjmp	.+50     	; 0xbc <__bad_interrupt>
+  8a:	00 00       	nop
+  8c:	17 c0       	rjmp	.+46     	; 0xbc <__bad_interrupt>
+  8e:	00 00       	nop
+  90:	15 c0       	rjmp	.+42     	; 0xbc <__bad_interrupt>
+  92:	00 00       	nop
+  94:	13 c0       	rjmp	.+38     	; 0xbc <__bad_interrupt>
+  96:	00 00       	nop
+  98:	11 c0       	rjmp	.+34     	; 0xbc <__bad_interrupt>
+  9a:	00 00       	nop
+  9c:	0f c0       	rjmp	.+30     	; 0xbc <__bad_interrupt>
+  9e:	00 00       	nop
+  a0:	0d c0       	rjmp	.+26     	; 0xbc <__bad_interrupt>
+  a2:	00 00       	nop
+  a4:	0b c0       	rjmp	.+22     	; 0xbc <__bad_interrupt>
+  a6:	00 00       	nop
+  a8:	09 c0       	rjmp	.+18     	; 0xbc <__bad_interrupt>
+	...
+
+000000ac <__ctors_end>:
+  ac:	11 24       	eor	r1, r1
+  ae:	1f be       	out	0x3f, r1	; 63
+  b0:	cf ef       	ldi	r28, 0xFF	; 255
+  b2:	da e0       	ldi	r29, 0x0A	; 10
+  b4:	de bf       	out	0x3e, r29	; 62
+  b6:	cd bf       	out	0x3d, r28	; 61
+  b8:	02 d0       	rcall	.+4      	; 0xbe <main>
+  ba:	04 c0       	rjmp	.+8      	; 0xc4 <_exit>
+
+000000bc <__bad_interrupt>:
+  bc:	a1 cf       	rjmp	.-190    	; 0x0 <__vectors>
+
+000000be <main>:
+  be:	80 e0       	ldi	r24, 0x00	; 0
+  c0:	90 e0       	ldi	r25, 0x00	; 0
+  c2:	08 95       	ret
+
+000000c4 <_exit>:
+  c4:	f8 94       	cli
+
+000000c6 <__stop_program>:
+  c6:	ff cf       	rjmp	.-2      	; 0xc6 <__stop_program>

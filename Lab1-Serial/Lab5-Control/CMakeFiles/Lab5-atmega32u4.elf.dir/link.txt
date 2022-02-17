@@ -1,0 +1,1 @@
+/usr/bin/avr-gcc -Os  -mmcu=atmega32u4 -Wl,--gc-sections -mrelax -Wl,-Map,Lab5-atmega32u4.map CMakeFiles/Lab5-atmega32u4.elf.dir/Lab5-Control.c.obj  -o Lab5-atmega32u4.elf  ../libLUFA_USB-atmega32u4.a ../libMEGN540-atmega32u4.a ../libLUFA_USB-atmega32u4.a 

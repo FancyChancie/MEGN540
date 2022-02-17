@@ -68,9 +68,9 @@ void SetupTimer0()
  */
 float  GetTimeSec()
 {
-    // *** MEGN540 Lab 2 ***
-    // YOUR CODE HERE
-    return 0;
+    Time_t time = GetTime();
+
+    return (float) time.millisec / 1000;
 }
 Time_t GetTime()
 {
@@ -78,7 +78,7 @@ Time_t GetTime()
     // YOUR CODE HERE
     Time_t time ={
                     .millisec = _count_ms,
-                    .microsec = 0 // YOU NEED TO REPLACE THIS WITH A CALL TO THE TIMER0 REGISTER AND MULTIPLY APPROPRIATELY
+                    .microsec = 4 * TCNT0 // YOU NEED TO REPLACE THIS WITH A CALL TO THE TIMER0 REGISTER AND MULTIPLY APPROPRIATELY
                  };
 
     return time;
@@ -91,13 +91,15 @@ Time_t GetTime()
  */
 uint32_t GetMilli()
 {
-    return _count_ms;
+    Time_t time = GetTime();
+
+    return time.millisec;
 }
 uint16_t GetMicro()
 {
-    // *** MEGN540 Lab 2 ***
-    // YOUR CODE HERE
-    return 0 ;// YOU NEED TO REPLACE THIS WITH A CALL TO THE TIMER0 REGISTER AND MULTIPLY APPROPRIATELY
+    Time_t time = GetTime();
+
+    return time.microsec;
 }
 
 
@@ -111,6 +113,11 @@ float  SecondsSince(const Time_t* time_start_p )
     // *** MEGN540 Lab 2 ***
     // YOUR CODE HERE
     float delta_time = 0;
+
+    float current_time = GetTimeSec();
+
+    delta_time = current_time - (time_start_p.millisec / 1000);
+
     return delta_time;
 }
 

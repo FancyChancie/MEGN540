@@ -81,8 +81,10 @@ static CDC_LineEncoding_t LineEncoding1 = { .BaudRateBPS = 0,
 void USB_Upkeep_Task(){
     USB_USBTask();
 
-    // *** MEGN540  ***
+    if(USB_DeviceState != DEVICE_STATE_Configured) return;
     // Get next byte from the USB hardware, send next byte to the USB hardware
+    usb_read_next_byte();
+    usb_write_next_byte();
 }
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
@@ -102,7 +104,7 @@ void USB_SetupHardware(void){
 	// *** MEGN540  ***
 	// INITIALIZE RING BUFFERS AND OTHER DATA
     rb_initialize_C(&_usb_receive_buffer);
-    rb_initialize_C(&_usb_send_buffer);
+	rb_initialize_C(&_usb_send_buffer);
 }
 
 /** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs and
@@ -148,37 +150,30 @@ void EVENT_USB_Device_ControlRequest(void){
 	void* LineEncodingData = &LineEncoding1;
 
 	/* Process CDC specific control requests */
-	switch (USB_ControlRequest.bRequest)
-	{
+	switch (USB_ControlRequest.bRequest){
 		case CDC_REQ_GetLineEncoding:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_DEVICETOHOST | REQTYPE_CLASS | REQREC_INTERFACE)){
 				Endpoint_ClearSETUP();
 
 				/* Write the line coding data to the control endpoint */
 				Endpoint_Write_Control_Stream_LE(LineEncodingData, sizeof(CDC_LineEncoding_t));
 				Endpoint_ClearOUT();
 			}
-
 			break;
 		case CDC_REQ_SetLineEncoding:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE)){
 				Endpoint_ClearSETUP();
 
 				/* Read the line coding data in from the host into the global struct */
 				Endpoint_Read_Control_Stream_LE(LineEncodingData, sizeof(CDC_LineEncoding_t));
 				Endpoint_ClearIN();
 			}
-
 			break;
 		case CDC_REQ_SetControlLineState:
-			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE))
-			{
+			if (USB_ControlRequest.bmRequestType == (REQDIR_HOSTTODEVICE | REQTYPE_CLASS | REQREC_INTERFACE)){
 				Endpoint_ClearSETUP();
 				Endpoint_ClearStatusStage();
 			}
-
 			break;
 	}
 }
@@ -229,7 +224,6 @@ void USB_Echo_Task(void){
 /**
  * (non-blocking) Function usb_read_next_byte takes the next USB byte and reads it
  * into a ring buffer for latter processing.
- *
  */
 void usb_read_next_byte(){
     // You'll need to take inspiration from the USB_Echo_Task above but
@@ -272,10 +266,20 @@ void usb_write_next_byte(){
 	/* Select the Serial Tx Endpoint */
 	Endpoint_SelectEndpoint(CDC_TX_EPADDR);
 
-    /* If the send buffer has data AND the selected IN endpoint IS ready for a new packet to be sent*/
-    if(rb_length_C(&_usb_send_buffer) && Endpoint_IsINReady()){
+    /* If the selected IN endpoint IS ready for a new packet to be sent AND the send buffer has data*/
+    if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer)){
         // Get size (in bytes) of the CDC data interface TX and RX data endpoint banks
         uint8_t tx_epsize_space_left = CDC_TXRX_EPSIZE;
+
+        // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
+        while(tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
+            // Pop off front of ring buffer & write
+            Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
+            // Decerment tx_epsize_space_left to control while loop
+            tx_epsize_space_left--;
+        }
+        // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+        Endpoint_ClearIN();
 
         //If there is NOT data available to write (i.e., tx_epsize_space_left == 0)
         if(tx_epsize_space_left == 0){
@@ -284,16 +288,6 @@ void usb_write_next_byte(){
             // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
             Endpoint_ClearIN();
         }
-
-        // While there IS data available to write (i.e., tx_epsize_space_left != 0), write data
-        while (tx_epsize_space_left && rb_length_C(&_usb_send_buffer)){
-            // Pop off front of ring buffer & write
-            Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
-            // Decerment tx_epsize_space_left to control while loop
-            tx_epsize_space_left--;
-        }
-        // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
-        Endpoint_ClearIN();
     }
 }
 
@@ -311,9 +305,9 @@ void usb_send_byte(uint8_t byte){
  * @param data_len [uint8_t] size of data-object to be sent
  */
 void usb_send_data(void* p_data, uint8_t data_len){
-	//char* data = p_data;
+	char* data = p_data;
     for(uint8_t i=0;i<data_len;i++){
-		rb_push_back_C(&_usb_send_buffer,&p_data[i]);
+		rb_push_back_C(&_usb_send_buffer,data[i]);
 	}
 }
 
@@ -324,11 +318,12 @@ void usb_send_data(void* p_data, uint8_t data_len){
 void usb_send_str(char* p_str){
     // Remember c-srtings are null terminated.
 	uint8_t i = 0;
-	
-	while(p_str[i] != '\0'){
+	while(p_str[i] != 0){
 		rb_push_back_C(&_usb_send_buffer,p_str[i]);
 		i++;
 	}
+    // Need to add 0 to the end to keep the Null character
+    rb_push_back_C(&_usb_send_buffer,0);
 }
 
 /**
@@ -343,7 +338,7 @@ void usb_send_str(char* p_str){
  *           All transmissions are host initiate.
  *      DATA: [Byte Array] Data byes that make up the message to be sent.
  *
- * @param format [c-str pointer] Pointer to interpertation string. e.g. ccf.  This alwasy starts with c because of the
+ * @param format [c-str pointer] Pointer to interpertation string. e.g. ccf.  This always starts with c because of the
  *          CMD char, here teh DATA object is then a char and a float.
  * @param cmd [char] Command this message is in respose to.
  * @param p_data [void*] pointer to the data-object to send.
@@ -363,14 +358,14 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
     // FUNCTION END
 
     // Figure out the total length of message
-    uint8_t length = 1+strlen(format)+sizeof(cmd)+data_len;
-    usb_send_byte(length);
+    uint8_t msg_len =  2 + strlen(format) + data_len;
+    usb_send_byte(msg_len);
     usb_send_str(format);
     usb_send_byte(cmd);
     usb_send_data(p_data,data_len);
 }
 
-/**
+/*
  * (non-blocking) Funtion usb_msg_length returns the number of bytes in the receive buffer awaiting processing.
  * @return [uint8_t] Number of bytes ready for processing.
  */
@@ -378,8 +373,9 @@ uint8_t usb_msg_length(){
     return rb_length_C(&_usb_receive_buffer);
 }
 
-/**
- * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in the receive buffer (null if empty).
+/*
+ * @brief 
+ * 
  * @return [uint8_t] Next Byte
  */
 uint8_t usb_msg_peek(){
@@ -401,14 +397,14 @@ uint8_t usb_msg_get(){
  *
  * @param buff
  * @param data_len
- * @return [bool]  True: sucess, False: not enough bytes available
+ * @return [bool]  True: success, False: not enough bytes available
  */
 bool usb_msg_read_into(void* p_obj, uint8_t data_len){
-    if(rb_length_C(&_usb_receive_buffer < data_len)){return false;}
+    if(usb_msg_length() < data_len) return false;
     
-    char* data = p_obj;
+    char* msg = p_obj;
     for(uint8_t i=0;i<data_len;i++){
-        data[i] = rb_pop_front_C(&_usb_receive_buffer);
+        msg[i] = rb_pop_front_C(&_usb_receive_buffer);
     }
     return true;
 }
@@ -418,7 +414,5 @@ bool usb_msg_read_into(void* p_obj, uint8_t data_len){
  * any bytes that remaining.
  */
 void usb_flush_input_buffer(){
-    while(rb_length_C>0){
-        rb_pop_front_C(&_usb_receive_buffer);
-    }
+    rb_initialize_C(&_usb_receive_buffer);
 }

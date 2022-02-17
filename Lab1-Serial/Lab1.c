@@ -31,13 +31,18 @@
 #include "../c_lib/SerialIO.h"
 #include "../c_lib/MEGN540_MessageHandeling.h"
 
+void Initialize(){
+    USB_SetupHardware();
+    GlobalInterruptEnable();
+    Message_Handling_Init();
+    //usb_flush_input_buffer();
+}
+
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
  */
 int main(void){
-    USB_SetupHardware();
-    GlobalInterruptEnable();
-    Message_Handling_Init(); // Initialize message handling
+    Initialize();
 
     while(true){
         USB_Upkeep_Task();
@@ -48,9 +53,7 @@ int main(void){
         // Below here you'll process state-machine flags.
         if(MSG_FLAG_Execute(&mf_restart)){
             // re initialzie your stuff...
-            USB_SetupHardware();
-            GlobalInterruptEnable();
-            Message_Handling_Init();
+            Initialize();
         }
     }
 }
