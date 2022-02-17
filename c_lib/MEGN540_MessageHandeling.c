@@ -58,7 +58,6 @@ void Message_Handling_Init(){
     // This is where you'd initialize any state machine flags to control your main-loop state machine
 
     MSG_FLAG_Init(&mf_restart); // needs to be initialized to the default values.
-    return;
 }
 
 /**
@@ -82,7 +81,7 @@ void Message_Handling_Task(){
     switch(command){
         case '*':
             if(usb_msg_length() >= MEGN540_Message_Len('*')){
-                //then process your times...
+                // then process your times...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a * so no need to save it as a variable
 
@@ -101,7 +100,7 @@ void Message_Handling_Task(){
             break;
         case '/':
             if(usb_msg_length() >= MEGN540_Message_Len('/')){
-                //then process your divide...
+                // then process your divide...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a / so no need to save it as a variable
 
@@ -120,7 +119,7 @@ void Message_Handling_Task(){
             break;
         case '+':
             if(usb_msg_length() >= MEGN540_Message_Len('+')){
-                //then process your plus...
+                // then process your plus...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a + so no need to save it as a variable
 
@@ -139,7 +138,7 @@ void Message_Handling_Task(){
             break;
         case '-':
             if(usb_msg_length() >= MEGN540_Message_Len('-')){
-                //then process your minus...
+                // then process your minus...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
 
@@ -158,7 +157,7 @@ void Message_Handling_Task(){
             break;
         case '~':
             if(usb_msg_length() >= MEGN540_Message_Len('~')){
-                //then process your reset by setting the mf_restart flag 
+                // then process your reset by setting the mf_restart flag 
                 mf_restart.active = true;
             }
             break;
