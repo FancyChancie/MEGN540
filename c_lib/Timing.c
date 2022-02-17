@@ -55,6 +55,12 @@ void SetupTimer0()
     // YOUR CODE HERE
     // Enable timing, setup prescalers, etc.
 
+    TCNT0 = 0;
+    OCR0A = 249;
+    TCCR0B CS00 = 1;
+    TCCR0B CS01 = 1;
+    TIMSK0 OCIE0A = 1;
+
     _count_ms= 0;
     ms_counter_1 = 0;
     ms_counter_2 = 0;
@@ -72,6 +78,7 @@ float  GetTimeSec()
 
     return (float) time.millisec / 1000;
 }
+
 Time_t GetTime()
 {
     // *** MEGN540 Lab 2 ***
