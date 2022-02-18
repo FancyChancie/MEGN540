@@ -51,20 +51,25 @@ static volatile uint32_t _count_ms = 0;
  */
 void SetupTimer0()
 {
-    // *** MEGN540 Lab 2 ***
-    // YOUR CODE HERE
     // Enable timing, setup prescalers, etc.
 
-    /*TCCR0B CS00 = 1;
+    /*
+    TCCR0B CS00 = 1;
     TCCR0B CS01 = 1;
-    TIMSK0 OCIE0A = 1;*/
+    TIMSK0 OCIE0A = 1;
+    */
 
+    // initialize timer0 (Sec. 13.1 & 13.8.3)
     TCNT0 = 0;
+    // set timer0 compare match value A (Sec. 13.6.2 & 13.8.4)
     OCR0A = 249;
-    TCCR0B = (1<<CS00)|(1<<CS01);
-    TIMSK0 = 1<<OCIE0A;
+    // set prescaling to 1:64 (Sec. 13.8.2)
+    TCCR0B |= (1<<CS00)|(1<<CS01);
+    // enable timer0 compare match interrupt (Sec. 13.8.6)
+    TIMSK0 |= 1<<OCIE0A;
 
-    _count_ms= 0;
+    // initialize counters
+    _count_ms    = 0;
     ms_counter_1 = 0;
     ms_counter_2 = 0;
     ms_counter_3 = 0;
@@ -77,11 +82,9 @@ void SetupTimer0()
  */
 Time_t GetTime()
 {
-    // *** MEGN540 Lab 2 ***
-    // YOUR CODE HERE
     Time_t time ={
                     .millisec = _count_ms,
-                    .microsec = 4 * TCNT0 // YOU NEED TO REPLACE THIS WITH A CALL TO THE TIMER0 REGISTER AND MULTIPLY APPROPRIATELY
+                    .microsec = 4 * TCNT0
                  };
 
     return time;
@@ -90,7 +93,6 @@ Time_t GetTime()
 float  GetTimeSec()
 {
     Time_t time = GetTime();
-
     return (float) time.millisec / 1000;
 }
 
@@ -102,13 +104,11 @@ float  GetTimeSec()
 uint32_t GetMilli()
 {
     Time_t time = GetTime();
-
     return time.millisec;
 }
 uint16_t GetMicro()
 {
     Time_t time = GetTime();
-
     return time.microsec;
 }
 
@@ -120,25 +120,20 @@ uint16_t GetMicro()
  */
 float  SecondsSince(const Time_t* time_start_p )
 {
-    // *** MEGN540 Lab 2 ***
-    // YOUR CODE HERE
-    float delta_time = 0;
-
-    float current_time = GetTimeSec();
-
+    float delta_time = 0; // initialize to zero
+    float current_time = GetTimeSec(); // get the current time (in sec)
     delta_time = current_time - (time_start_p.millisec / 1000);
-
     return delta_time;
 }
 
 /** This is the Interrupt Service Routine for the Timer0 Compare A feature.
  * You'll need to set the compare flags properly for it to work.
  */
-/*ISR( DEFINE THE COMPARISON TRIGGER )
+// input found in /usr/lib/avr/include/avr/iom32u4.h
+ISR(TIMER0_COMPA_vect)
 {
-    // *** MEGN540 Lab 2 ***
-    // YOUR CODE HERE
-    // YOU NEED TO RESET THE Timer0 Value to 0 again!
+    // initialize timer0
+    TCNT0 = 0;
 
     // take care of upticks of both our internal and external variables.
     _count_ms ++;
@@ -147,4 +142,4 @@ float  SecondsSince(const Time_t* time_start_p )
     ms_counter_2 ++;
     ms_counter_3 ++;
     ms_counter_4 ++;
-}*/
+}
