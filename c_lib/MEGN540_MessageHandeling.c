@@ -31,8 +31,12 @@
 #include "MEGN540_MessageHandeling.h"
 
 
-static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag){
+static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag)
+{
     p_flag->active = false;
+    p_flag->duration = -1;
+    p_flag->last_trigger_time.microsec = 0;
+    p_flag->last_trigger_time.millisec = 0;
 }
 
 
@@ -41,12 +45,15 @@ static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag){
  * in the main loop both because its active and because its time.
  * @return [bool] True for execute action, False for skip action
  */
-bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag){
+bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag)
+{
     // THIS FUNCTION WILL BE MOST USEFUL FORM LAB 2 ON.
     // What is the logic to indicate an action should be executed?
     // For Lab 1, ignore the timing part.
     
-    return p_flag->active;
+    // if active and duration is less than or equal to the last trigger time, return true,
+    // otherwise return false
+    return p_flag->active && (p_flag->duration <= SecondsSince(&p_flag->last_trigger_time));
 }
 
 
@@ -54,10 +61,15 @@ bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag){
  * Function Message_Handling_Init initializes the message handling and all associated state flags and data to their default
  * conditions.
  */
-void Message_Handling_Init(){
+void Message_Handling_Init()
+{
     // This is where you'd initialize any state machine flags to control your main-loop state machine
 
-    MSG_FLAG_Init(&mf_restart); // needs to be initialized to the default values.
+    // needs to be initialized to the default values.
+    MSG_FLAG_Init(&mf_restart);
+    MSG_FLAG_Init(&mf_loop_timer);
+    MSG_FLAG_Init(&mf_send_time);
+    MSG_FLAG_Init(&mf_send_time);
 }
 
 /**
@@ -65,7 +77,8 @@ void Message_Handling_Init(){
  * It returns true unless the program receives a reset message.
  * @return
  */
-void Message_Handling_Task(){
+void Message_Handling_Task()
+{
     // I suggest you use your peak function and a switch interface
     // Either do the simple stuff strait up, set flags to have it done later.
     // If it just is a USB thing, do it here, if it requires other hardware, do it in the main and
@@ -156,21 +169,52 @@ void Message_Handling_Task(){
             }
             break;
         case 't':
+            // case 't' returns the time it requested followed by the time to complete the action specified by the second input char. 
             if(usb_msg_length() >= MEGN540_Message_Len('t')){
-                // then process your minus...
+                // then process your t...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a t so no need to save it as a variable
 
-                
+                char subcommand = usb_msg_peek();
+
+                switch(subcommand){
+                    case 0: // send time now
+                        mf_send_time.active = true; // set flag to true to it knows to send time
+                        break;
+                    case 1: // send time to complete loop iteration
+                        mf_time_float_send.active = true;
+                        break;
+                    default:
+                    // What to do if you dont recognize the subcommand character
+                        usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
+                        usb_flush_input_buffer();
+                    break;
+                }
             }
             break;
         case 'T':
+            // case 'T' returns the time it requested followed by the time to complete the action specified by the second input char
+            // and returns the time every X milliseconds. If the time is zero or negative it cancels the request without response.
             if(usb_msg_length() >= MEGN540_Message_Len('T')){
-                // then process your minus...
+                // then process your T...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a - so no need to save it as a variable
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a T so no need to save it as a variable
 
                 struct __attribute__((__packed__)) { char c; float v; } data;
+
+                // copy data into structure for use
+                usb_msg_read_into(&data, sizeof(data));
+
+                // if 2nd input char <= 0, cancel request without response
+                if (data.c <= 0){
+                    mf_send_time.active = false;
+                    mf_time_float_send.last_trigger_time = false;
+                    mf_loop_timer.active = false;
+                }else{
+                    mf_send_time.active = true;
+                    mf_send_time.last_trigger_time = GetTime();
+                    mf_send_time.duration = data.v;
+                }
             }
             break;
         case '~':
@@ -195,7 +239,8 @@ void Message_Handling_Task(){
  * @param cmd
  * @return Size of expected string. Returns 0 if unreconized.
  */
-uint8_t MEGN540_Message_Len( char cmd ){
+uint8_t MEGN540_Message_Len( char cmd )
+{
     switch(cmd){
         case '~': return	1; break;
         case '*': return	9; break;
