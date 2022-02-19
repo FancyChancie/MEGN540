@@ -50,7 +50,7 @@ int main(void)
 {
     Initialize();
 
-    bool firstLoop = true;     //tracking variable for mf_loop_timer
+    bool firstLoop = true; //tracking variable for mf_loop_timer
 
     for (;;)
     {
@@ -72,7 +72,7 @@ int main(void)
             }else{
                 mf_send_time.last_trigger_time = GetTime();
                 struct __attribute__((__packed__)) { float rate; float time } data;
-                data.rate = mf_send_time.duration;
+                data.duration = mf_send_time.duration;
                 data.time = currentTime;
                 usb_send_msg("cBf", 'T', &data, sizeof(data));
             }
@@ -90,7 +90,7 @@ int main(void)
                 mf_time_float_send.active = false;
             }else{
                 struct __attribute__((__packed__)) { float rate; float time } data;
-                data.rate = mf_time_float_send.duration;
+                data.duration = mf_time_float_send.duration;
                 data.time = floatSendTime;
                 usb_send_msg("cBf", 'T', &data, sizeof(data));
                 mf_time_float_send.last_trigger_time = GetTime();
@@ -101,13 +101,20 @@ int main(void)
         if(MSG_FLAG_Execute(&mf_loop_timer)){  
             if(firstLoop){
                 static Time_t loopTimeStart;    // struct to store loop time (static so it doesn't get deleted after this inner loop ends)
-                loopTime = GetTime();   // fill loop time struct
-                firstLoop = !firstLoop;
-
+                loopTimeStart = GetTime();   // fill loopTime struct
+            }else{
                 if(mf_loop_timer.duration <= 0){
                     usb_send_msg("cBf", 't', &, sizeof());
+                }else{
+                    float loopTimeEnd = SecondsSince(&loopTimeStart);
+                    struct __attribute__((__packed__)) { float rate; float time } data;
+                    data.duration = mf_loop_timer.duration;
+                    data.time = loopEndTime;
+                    usb_send_msg("cBf", 'T', &data, sizeof(data));
+                    
                 }
             }
+            firstLoop = !firstLoop; // flip boolean since it is only checking the time of one loop
         }
     }
 }

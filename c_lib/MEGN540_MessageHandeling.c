@@ -65,11 +65,11 @@ void Message_Handling_Init()
 {
     // This is where you'd initialize any state machine flags to control your main-loop state machine
 
-    // needs to be initialized to the default values.
+    // initialize to the default values.
     MSG_FLAG_Init(&mf_restart);
+    MSG_FLAG_Init(&mf_send_time);
     MSG_FLAG_Init(&mf_loop_timer);
-    MSG_FLAG_Init(&mf_send_time);
-    MSG_FLAG_Init(&mf_send_time);
+    MSG_FLAG_Init(&mf_time_float_send);
 }
 
 /**
@@ -206,20 +206,30 @@ void Message_Handling_Task()
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a T so no need to save it as a variable
 
-                struct __attribute__((__packed__)) { uint8_t c; float v; } data;
+                // Build a meaningful structure to put your data in.
+                struct __attribute__((__packed__)) { char c; float v; } data;
 
-                // copy data into structure for use
-                usb_msg_read_into(&data, sizeof(data));
+                // Copy the bytes from the usb receive buffer into our structure so we can use the information
+                usb_msg_read_into( &data, sizeof(data) );
 
-                // if 2nd input char <= 0, cancel request without response
-                if (data.c <= 0){
-                    mf_send_time.active = false;
-                    mf_time_float_send.last_trigger_time = false;
-                    mf_loop_timer.active = false;
-                }else{
+                
+                if (data.c <= 0){   // cancel request without response
+                    MSG_FLAG_Init(&mf_send_time);
+                    MSG_FLAG_Init(&mf_loop_timer);
+                    MSG_FLAG_Init(&mf_time_float_send);
+                    
+                }else if(data.c == 1){   // send time every 'duration' milliseconds
                     mf_send_time.active = true;
                     mf_send_time.last_trigger_time = GetTime();
                     mf_send_time.duration = data.v;
+                }else if(data.c == 2){   // send time to send float
+                    mf_time_float_send.active = true;
+                    mf_time_float_send.last_trigger_time = GetTime();
+                    mf_time_float_send.duration = data.v;
+                }else if(data.c == 3){
+                    mf_time_float_send.active = true;
+                    mf_time_float_send.last_trigger_time = GetTime();
+                    mf_time_float_send.duration = data.v;
                 }
             }
             break;
