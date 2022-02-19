@@ -30,20 +30,84 @@
 
 #include "../c_lib/SerialIO.h"
 #include "../c_lib/Timing.h"
+#include "../c_lib/MEGN540_MessageHandeling.h"
+
+/** 
+ * Function to re/initialize states
+ */
+void Initialize()
+{
+    USB_SetupHardware();     // initialize USB
+    GlobalInterruptEnable(); // enable Global Interrupts for USB and Timer etc.
+    Message_Handling_Init(); // initialize message handing and all associated flags
+    SetupTimer0();           // initialize timer zero functionality
+}
 
 /** Main program entry point. This routine configures the hardware required by the application, then
  *  enters a loop to run the application tasks in sequence.
  */
 int main(void)
 {
-    SetupTimer0();         // initialize timer zero functionality
-    USB_SetupHardware();   // initialize USB
+    Initialize();
 
-    GlobalInterruptEnable(); // Enable Global Interrupts for USB and Timer etc.
+    bool firstLoop = true;     //tracking variable for mf_loop_timer
 
     for (;;)
     {
-        USB_Echo_Task();
+        //USB_Echo_Task();
         USB_USBTask();
+        Message_Handling_Task();
+
+        // [State-machine flag] Restart
+        if(MSG_FLAG_Execute(&mf_restart)){
+            Initialize(); // re initialzie everything...
+        }
+
+        // [State-machine flag] Send time
+        if(MSG_FLAG_Execute(&mf_send_time)){
+            float currentTime = GetTimeSec();   // get current time
+            if(mf_send_time.duration <= 0){
+                usb_send_msg("cBf", 't', &currentTime, sizeof(currentTime));
+                mf_send_time.active = false;
+            }else{
+                mf_send_time.last_trigger_time = GetTime();
+                struct __attribute__((__packed__)) { float rate; float time } data;
+                data.rate = mf_send_time.duration;
+                data.time = currentTime;
+                usb_send_msg("cBf", 'T', &data, sizeof(data));
+            }
+        }
+
+        // [State-machine flag] Time to send float
+        if(MSG_FLAG_Execute(&mf_time_float_send)){
+            float gravity = 9.81; // float to send
+            Time_t floatSendStart = GetTime();   // struct for time to send float
+            usb_send_msg("cf", 'g', &gravity, sizeof(gravity)); // send float
+            float floatSendTime = SecondsSince(&floatSendStart); // get time it took to send float
+
+            if(mf_time_float_send.duration <= 0){
+                usb_send_msg("cBf", 't', &floatSendTime, sizeof(floatSendTime));
+                mf_time_float_send.active = false;
+            }else{
+                struct __attribute__((__packed__)) { float rate; float time } data;
+                data.rate = mf_time_float_send.duration;
+                data.time = floatSendTime;
+                usb_send_msg("cBf", 'T', &data, sizeof(data));
+                mf_time_float_send.last_trigger_time = GetTime();
+            }
+        }
+
+        // [State-machine flag] Time to complete loop
+        if(MSG_FLAG_Execute(&mf_loop_timer)){  
+            if(firstLoop){
+                static Time_t loopTimeStart;    // struct to store loop time (static so it doesn't get deleted after this inner loop ends)
+                loopTime = GetTime();   // fill loop time struct
+                firstLoop = !firstLoop;
+
+                if(mf_loop_timer.duration <= 0){
+                    usb_send_msg("cBf", 't', &, sizeof());
+                }
+            }
+        }
     }
 }

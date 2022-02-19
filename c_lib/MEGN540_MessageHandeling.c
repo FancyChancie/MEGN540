@@ -181,11 +181,17 @@ void Message_Handling_Task()
                     case 0: // send time now
                         mf_send_time.active = true; // set flag to true to it knows to send time
                         break;
-                    case 1: // send time to complete loop iteration
-                        mf_time_float_send.active = true;
+                    case 1: // send time to complete full loop iteration
+                        mf_loop_timer.active = true;
+                        mf_loop_timer.last_trigger_time = GetTime();
+                        mf_loop_timer.duration = -1;
                         break;
-                    default:
-                    // What to do if you dont recognize the subcommand character
+                    case 2: // send time to send a float
+                        mf_time_float_send.active = true;
+                        mf_time_float_send.last_trigger_time = GetTime();
+                        mf_time_float_send.duration = -1;
+                        break;
+                    default: // don't recognize the subcommand character
                         usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
                         usb_flush_input_buffer();
                     break;
@@ -200,7 +206,7 @@ void Message_Handling_Task()
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a T so no need to save it as a variable
 
-                struct __attribute__((__packed__)) { char c; float v; } data;
+                struct __attribute__((__packed__)) { uint8_t c; float v; } data;
 
                 // copy data into structure for use
                 usb_msg_read_into(&data, sizeof(data));

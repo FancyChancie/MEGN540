@@ -82,10 +82,10 @@ void SetupTimer0()
  */
 Time_t GetTime()
 {
-    Time_t time ={
+    Time_t time = {
                     .millisec = _count_ms,
                     .microsec = 4 * TCNT0
-                 };
+                  };
 
     return time;
 }
