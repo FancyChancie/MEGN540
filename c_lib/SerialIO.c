@@ -78,7 +78,8 @@ static CDC_LineEncoding_t LineEncoding1 = { .BaudRateBPS = 0,
                                             .DataBits    = 8                            };
 
 
-void USB_Upkeep_Task(){
+void USB_Upkeep_Task()
+{
     USB_USBTask();
 
     if(USB_DeviceState != DEVICE_STATE_Configured) return;
@@ -88,7 +89,8 @@ void USB_Upkeep_Task(){
 }
 
 /** Configures the board hardware and chip peripherals for the demo's functionality. */
-void USB_SetupHardware(void){
+void USB_SetupHardware(void)
+{
 #if (ARCH == ARCH_AVR8)
 	/* Disable watchdog if enabled by bootloader/fuses */
 	MCUSR &= ~(1 << WDRF);
@@ -110,7 +112,8 @@ void USB_SetupHardware(void){
 /** Event handler for the USB_Connect event. This indicates that the device is enumerating via the status LEDs and
  *  starts the library USB task to begin the enumeration and USB management process.
  */
-void EVENT_USB_Device_Connect(void){
+void EVENT_USB_Device_Connect(void)
+{
 	/* Indicate USB enumerating */
 	
 	//Future LED MSG could be good here
@@ -119,7 +122,8 @@ void EVENT_USB_Device_Connect(void){
 /** Event handler for the USB_Disconnect event. This indicates that the device is no longer connected to a host via
  *  the status LEDs and stops the USB management and CDC management tasks.
  */
-void EVENT_USB_Device_Disconnect(void){
+void EVENT_USB_Device_Disconnect(void)
+{
 	/* Indicate USB not ready */
 	
 	//Future LED MSG could be good here
@@ -128,7 +132,8 @@ void EVENT_USB_Device_Disconnect(void){
 /** Event handler for the USB_ConfigurationChanged event. This is fired when the host set the current configuration
  *  of the USB device after enumeration - the device endpoints are configured and the CDC management tasks are started.
  */
-void EVENT_USB_Device_ConfigurationChanged(void){
+void EVENT_USB_Device_ConfigurationChanged(void)
+{
 	bool ConfigSuccess = true;
 
 	/* Setup first CDC Interface's Endpoints */
@@ -145,7 +150,8 @@ void EVENT_USB_Device_ConfigurationChanged(void){
  *  the device from the USB host before passing along unhandled control requests to the library for processing
  *  internally.
  */
-void EVENT_USB_Device_ControlRequest(void){
+void EVENT_USB_Device_ControlRequest(void)
+{
 	/* Determine which interface's Line Coding data is being set from the wIndex parameter */
 	void* LineEncodingData = &LineEncoding1;
 
@@ -182,7 +188,8 @@ void EVENT_USB_Device_ControlRequest(void){
 /** Function to manage CDC data transmission and reception to and from the host for the second CDC interface, which echoes back
  *  all data sent to it from the host.
  */
-void USB_Echo_Task(void){
+void USB_Echo_Task(void)
+{
 	/* Device must be connected and configured for the task to run */
 	if(USB_DeviceState != DEVICE_STATE_Configured) return;
 
@@ -225,7 +232,8 @@ void USB_Echo_Task(void){
  * (non-blocking) Function usb_read_next_byte takes the next USB byte and reads it
  * into a ring buffer for latter processing.
  */
-void usb_read_next_byte(){
+void usb_read_next_byte()
+{
     // You'll need to take inspiration from the USB_Echo_Task above but
     // will need to adjust to make it non-blocking. You'll need to dig into the library to understand
     // how the function above is working then interact at a slightly lower level, but still higher than
@@ -254,7 +262,8 @@ void usb_read_next_byte(){
  * (non-blocking) Function usb_write_next_byte takes the next byte from the output
  * ringbuffer and writes it to the USB port (if free).
  */
-void usb_write_next_byte(){
+void usb_write_next_byte()
+{
     // You'll need to take inspiration from the USB_Echo_Task above but
     // will need to adjust to make it non-blocking. You'll need to dig into the library to understand
     // how the function above is working then interact at a slightly lower level, but still higher than
@@ -290,7 +299,8 @@ void usb_write_next_byte(){
  * (non-blocking) Function usb_send_byte Adds a character to the output buffer
  * @param byte [uint8_t] Data to send
  */
-void usb_send_byte(uint8_t byte){
+void usb_send_byte(uint8_t byte)
+{
 	rb_push_back_C(&_usb_send_buffer,byte);
 }
 
@@ -299,7 +309,8 @@ void usb_send_byte(uint8_t byte){
  * @param p_data [void*] pointer to the data-object to be sent
  * @param data_len [uint8_t] size of data-object to be sent
  */
-void usb_send_data(void* p_data, uint8_t data_len){
+void usb_send_data(void* p_data, uint8_t data_len)
+{
 	char* data = p_data;
     for(uint8_t i=0;i<data_len;i++){
 		rb_push_back_C(&_usb_send_buffer,data[i]);
@@ -310,7 +321,8 @@ void usb_send_data(void* p_data, uint8_t data_len){
  * (non-blocking) Function usb_send_str adds a c-style (null terminated) string to the output buffer
  * @param p_str [char*] Pointer to a c-string (null terminated) to send
  */
-void usb_send_str(char* p_str){
+void usb_send_str(char* p_str)
+{
     // Remember c-srtings are null terminated.
 	uint8_t i = 0;
 	while(p_str[i] != 0){
@@ -339,7 +351,8 @@ void usb_send_str(char* p_str){
  * @param p_data [void*] pointer to the data-object to send.
  * @param data_len [uint8_t] size of the data-object to send. Remember sizeof() can help you with this!
  */
-void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
+void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len )
+{
     // Remember c-strings are null terminated. Use the above functions to help!
 
     // FUNCTION BEGIN
@@ -367,7 +380,8 @@ void usb_send_msg(char* format, char cmd, void* p_data, uint8_t data_len ){
  * (non-blocking) Funtion usb_msg_length returns the number of bytes in the receive buffer awaiting processing.
  * @return [uint8_t] Number of bytes ready for processing.
  */
-uint8_t usb_msg_length(){
+uint8_t usb_msg_length()
+{
     return rb_length_C(&_usb_receive_buffer);
 }
 
@@ -376,7 +390,8 @@ uint8_t usb_msg_length(){
  * 
  * @return [uint8_t] Next Byte
  */
-uint8_t usb_msg_peek(){
+uint8_t usb_msg_peek()
+{
     return rb_get_C(&_usb_receive_buffer,0); 
 }
 
@@ -384,7 +399,8 @@ uint8_t usb_msg_peek(){
  * (non-blocking) Function usb_msg_get removes and returns the next byte in the receive buffer (null if empty)
  * @return [uint8_t] Next Byte
  */
-uint8_t usb_msg_get(){
+uint8_t usb_msg_get()
+{
     return rb_pop_front_C(&_usb_receive_buffer);
 }
 
@@ -397,7 +413,8 @@ uint8_t usb_msg_get(){
  * @param data_len
  * @return [bool]  True: success, False: not enough bytes available
  */
-bool usb_msg_read_into(void* p_obj, uint8_t data_len){
+bool usb_msg_read_into(void* p_obj, uint8_t data_len)
+{
     // If not enough bytes available
     if(usb_msg_length() < data_len) return false;
     
@@ -413,6 +430,17 @@ bool usb_msg_read_into(void* p_obj, uint8_t data_len){
  * (non-blocking) Function usb_flush_input_buffer sets the length of the recieve buffer to zero and disreguards
  * any bytes that remaining.
  */
-void usb_flush_input_buffer(){
+void usb_flush_input_buffer()
+{
     rb_initialize_C(&_usb_receive_buffer);
+}
+
+/**
+ * Function DebugPrint sends a message according to the MEGN540 USB message format to help with debugging.
+ */
+void DebugPrint()
+{
+    struct {char let[5];} debug = {.let = {'D','E','B','U','G'}};
+    usb_send_msg("c5s", '!', &debug, sizeof(debug));
+    usb_flush_input_buffer();
 }

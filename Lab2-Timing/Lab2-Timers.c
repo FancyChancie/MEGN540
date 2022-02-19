@@ -56,7 +56,7 @@ int main(void)
     for (;;)
     {
         //USB_Echo_Task();
-        USB_USBTask();
+        //USB_USBTask();
         USB_Upkeep_Task();
         Message_Handling_Task();
 
@@ -67,9 +67,10 @@ int main(void)
         
         // [State-machine flag] Send time
         if(MSG_FLAG_Execute(&mf_send_time)){
+            DebugPrint();
             float currentTime = GetTimeSec();   // get current time
             if(mf_send_time.duration <= 0){
-                usb_send_msg("cB", 't', &currentTime, sizeof(currentTime));
+                usb_send_msg("cBf", 't', &currentTime, sizeof(currentTime));
                 mf_send_time.active = false;
             }else{
                 mf_send_time.last_trigger_time = GetTime();
@@ -88,7 +89,7 @@ int main(void)
             float floatSendTime = SecondsSince(&floatSendStart); // get time it took to send float
 
             if(mf_time_float_send.duration <= 0){
-                usb_send_msg("cB", 't', &floatSendTime, sizeof(floatSendTime));
+                usb_send_msg("cBf", 't', &floatSendTime, sizeof(floatSendTime));
                 mf_time_float_send.active = false;
             }else{
                 struct __attribute__((__packed__)) { float duration; float time; } data;
@@ -108,7 +109,7 @@ int main(void)
             }else{
                 float loopTimeEnd = SecondsSince(&loopTimeStart);
                 if(mf_loop_timer.duration <= 0){
-                    usb_send_msg("cB", 't', &loopTimeEnd, sizeof(loopTimeEnd));
+                    usb_send_msg("cBf", 't', &loopTimeEnd, sizeof(loopTimeEnd));
                 }else{
                     struct __attribute__((__packed__)) { float duration; float time; } data;
                     data.duration = mf_loop_timer.duration;

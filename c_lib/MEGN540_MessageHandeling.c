@@ -47,12 +47,10 @@ static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag)
  */
 bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag)
 {
-    // THIS FUNCTION WILL BE MOST USEFUL FORM LAB 2 ON.
     // What is the logic to indicate an action should be executed?
-    // For Lab 1, ignore the timing part.
     
-    // if active and duration is less than or equal to the last trigger time, return true,
-    // otherwise return false
+    // if active and duration is less than (or equal to) the last trigger time, return true,
+    // otherwise, return false
     return p_flag->active && (p_flag->duration <= SecondsSince(&p_flag->last_trigger_time));
 }
 
@@ -175,30 +173,41 @@ void Message_Handling_Task()
                 // then process your t...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a t so no need to save it as a variable
-
-                char subcommand = usb_msg_peek();
-
-                switch(subcommand){
-                    case '0': // send time now
-                        //char response[3] = "y";              // DEBUGGING HELPER COMMAND
-                        //usb_send_msg("cc", 6, 6, sizeof(6)); // DEBUGGING HELPER COMMAND
-                        mf_send_time.active = true; // set flag to true so it knows to send time
-                        break;
-                    case '1': // send time to complete full loop iteration
-                        mf_loop_timer.active = true;
-                        mf_loop_timer.last_trigger_time = GetTime();
-                        mf_loop_timer.duration = -1;
-                        break;
-                    case '2': // send time to send a float
-                        mf_time_float_send.active = true;
-                        mf_time_float_send.last_trigger_time = GetTime();
-                        mf_time_float_send.duration = -1;
-                        break;
-                    default: // don't recognize the subcommand character
-                        usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
-                        //usb_flush_input_buffer();
-                    break;
+                //DebugPrint();
+                uint8_t subcommand = usb_msg_get();
+                if(subcommand == 0){
+                    usb_send_msg("cc", subcommand, "x", sizeof(subcommand));
+                    mf_send_time.active = true; // set flag to true so it knows to send time
+                }else if(subcommand == 1){
+                    mf_loop_timer.active = true;
+                    mf_loop_timer.last_trigger_time = GetTime();
+                    mf_loop_timer.duration = -1;
+                }else if(subcommand == 2){
+                    mf_time_float_send.active = true;
+                    mf_time_float_send.last_trigger_time = GetTime();
+                    mf_time_float_send.duration = -1;
+                }else{
+                    usb_send_msg("cc", subcommand, "y", sizeof(subcommand));
                 }
+
+                // switch(subcommand){
+                //     case 0: // send time now
+                //         mf_send_time.active = true; // set flag to true so it knows to send time
+                //         break;
+                //     case 1: // send time to complete full loop iteration
+                //         mf_loop_timer.active = true;
+                //         mf_loop_timer.last_trigger_time = GetTime();
+                //         mf_loop_timer.duration = -1;
+                //         break;
+                //     case 2: // send time to send a float
+                //         mf_time_float_send.active = true;
+                //         mf_time_float_send.last_trigger_time = GetTime();
+                //         mf_time_float_send.duration = -1;
+                //         break;
+                //     default: // don't recognize the subcommand character
+                //         usb_send_msg("cc", subcommand, "y", sizeof(subcommand));
+                //     break;
+                // }
             }
             break;
         case 'T':

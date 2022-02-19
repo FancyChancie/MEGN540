@@ -172,5 +172,9 @@ bool usb_msg_read_into(void* p_obj, uint8_t data_len);
  */
 void usb_flush_input_buffer();
 
-#endif
+/**
+ * Function DebugPrint sends a message according to the MEGN540 USB message format to help with debugging.
+ */
+void DebugPrint();
 
+#endif

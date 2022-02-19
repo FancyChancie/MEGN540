@@ -130,7 +130,7 @@ float  SecondsSince(const Time_t* time_start_p )
 /** This is the Interrupt Service Routine for the Timer0 Compare A feature.
  * You'll need to set the compare flags properly for it to work.
  */
-// input found in /usr/lib/avr/include/avr/iom32u4.h
+// function input found in /usr/lib/avr/include/avr/iom32u4.h
 ISR(TIMER0_COMPA_vect)
 {
     // initialize timer0
