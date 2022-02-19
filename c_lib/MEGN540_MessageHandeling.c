@@ -217,19 +217,21 @@ void Message_Handling_Task()
                     MSG_FLAG_Init(&mf_send_time);
                     MSG_FLAG_Init(&mf_loop_timer);
                     MSG_FLAG_Init(&mf_time_float_send);
-                    
                 }else if(data.c == 1){   // send time every 'duration' milliseconds
                     mf_send_time.active = true;
                     mf_send_time.last_trigger_time = GetTime();
                     mf_send_time.duration = data.v;
                 }else if(data.c == 2){   // send time to send float
-                    mf_time_float_send.active = true;
-                    mf_time_float_send.last_trigger_time = GetTime();
-                    mf_time_float_send.duration = data.v;
+                    mf_loop_timer.active = true;
+                    mf_loop_timer.last_trigger_time = GetTime();
+                    mf_loop_timer.duration = data.v;
                 }else if(data.c == 3){
                     mf_time_float_send.active = true;
                     mf_time_float_send.last_trigger_time = GetTime();
                     mf_time_float_send.duration = data.v;
+                }else{
+                    usb_send_msg("cc", data.c, "?", sizeof(data.c));
+                    usb_flush_input_buffer();
                 }
             }
             break;

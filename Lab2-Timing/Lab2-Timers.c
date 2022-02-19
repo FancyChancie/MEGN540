@@ -103,15 +103,15 @@ int main(void)
                 static Time_t loopTimeStart;    // struct to store loop time (static so it doesn't get deleted after this inner loop ends)
                 loopTimeStart = GetTime();   // fill loopTime struct
             }else{
+                float loopTimeEnd = SecondsSince(&loopTimeStart);
                 if(mf_loop_timer.duration <= 0){
-                    usb_send_msg("cBf", 't', &, sizeof());
+                    usb_send_msg("cBf", 't', &loopTimeEnd, sizeof(loopTimeEnd));
                 }else{
-                    float loopTimeEnd = SecondsSince(&loopTimeStart);
                     struct __attribute__((__packed__)) { float rate; float time } data;
                     data.duration = mf_loop_timer.duration;
                     data.time = loopEndTime;
                     usb_send_msg("cBf", 'T', &data, sizeof(data));
-                    
+                    mf_loop_timer.last_trigger_time = GetTime();
                 }
             }
             firstLoop = !firstLoop; // flip boolean since it is only checking the time of one loop
