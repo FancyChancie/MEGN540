@@ -64,9 +64,10 @@ void SetupTimer0()
     // set timer0 compare match value A (Sec. 13.6.2 & 13.8.4)
     OCR0A = 249;
     // set prescaling to 1:64 (Sec. 13.8.2)
-    TCCR0B |= (1<<CS00)|(1<<CS01);
+    TCCR0B |= (1<<CS00);
+    TCCR0B |= (1<<CS01);
     // enable timer0 compare match interrupt (Sec. 13.8.6)
-    TIMSK0 |= 1<<OCIE0A;
+    TIMSK0 |= (1<<OCIE0A);
 
     // initialize counters
     _count_ms    = 0;
@@ -122,7 +123,7 @@ float  SecondsSince(const Time_t* time_start_p )
 {
     float delta_time = 0; // initialize to zero
     float current_time = GetTimeSec(); // get the current time (in sec)
-    delta_time = current_time - (time_start_p.millisec / 1000);
+    delta_time = current_time - (time_start_p->millisec / 1000);
     return delta_time;
 }
 

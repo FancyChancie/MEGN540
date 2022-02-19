@@ -70,6 +70,7 @@ void Message_Handling_Init()
     MSG_FLAG_Init(&mf_send_time);
     MSG_FLAG_Init(&mf_loop_timer);
     MSG_FLAG_Init(&mf_time_float_send);
+
 }
 
 /**
@@ -178,22 +179,24 @@ void Message_Handling_Task()
                 char subcommand = usb_msg_peek();
 
                 switch(subcommand){
-                    case 0: // send time now
-                        mf_send_time.active = true; // set flag to true to it knows to send time
+                    case '0': // send time now
+                        //char response[3] = "y";              // DEBUGGING HELPER COMMAND
+                        //usb_send_msg("cc", 6, 6, sizeof(6)); // DEBUGGING HELPER COMMAND
+                        mf_send_time.active = true; // set flag to true so it knows to send time
                         break;
-                    case 1: // send time to complete full loop iteration
+                    case '1': // send time to complete full loop iteration
                         mf_loop_timer.active = true;
                         mf_loop_timer.last_trigger_time = GetTime();
                         mf_loop_timer.duration = -1;
                         break;
-                    case 2: // send time to send a float
+                    case '2': // send time to send a float
                         mf_time_float_send.active = true;
                         mf_time_float_send.last_trigger_time = GetTime();
                         mf_time_float_send.duration = -1;
                         break;
                     default: // don't recognize the subcommand character
                         usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
-                        usb_flush_input_buffer();
+                        //usb_flush_input_buffer();
                     break;
                 }
             }
@@ -212,8 +215,7 @@ void Message_Handling_Task()
                 // Copy the bytes from the usb receive buffer into our structure so we can use the information
                 usb_msg_read_into( &data, sizeof(data) );
 
-                
-                if (data.c <= 0){   // cancel request without response
+                if(data.c <= 0){   // cancel request without response
                     MSG_FLAG_Init(&mf_send_time);
                     MSG_FLAG_Init(&mf_loop_timer);
                     MSG_FLAG_Init(&mf_time_float_send);
@@ -231,7 +233,7 @@ void Message_Handling_Task()
                     mf_time_float_send.duration = data.v;
                 }else{
                     usb_send_msg("cc", data.c, "?", sizeof(data.c));
-                    usb_flush_input_buffer();
+                    //usb_flush_input_buffer();
                 }
             }
             break;

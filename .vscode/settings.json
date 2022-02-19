@@ -6,6 +6,7 @@
         "string": "c",
         "string_view": "c",
         "megn540_messagehandeling.h": "c",
-        "chrono": "c"
+        "chrono": "c",
+        "serialio.h": "c"
     }
 }
