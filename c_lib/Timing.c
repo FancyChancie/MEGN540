@@ -87,7 +87,6 @@ Time_t GetTime()
                     .millisec = _count_ms,
                     .microsec = 4 * TCNT0
                   };
-
     return time;
 }
 
@@ -119,7 +118,7 @@ uint16_t GetMicro()
  * @param p_time_start a pointer to a start time struct
  * @return (Time_t) Time since the other time.
  */
-float  SecondsSince(const Time_t* time_start_p )
+float  SecondsSince(const Time_t* time_start_p)
 {
     float delta_time = 0; // initialize to zero
     float current_time = GetTimeSec(); // get the current time (in sec)
