@@ -241,7 +241,7 @@ void Message_Handling_Task()
                     mf_time_float_send.last_trigger_time = GetTime();
                     mf_time_float_send.duration = durcommand;
                 }else{
-                    usb_send_msg("cc", data.c, "?", sizeof(data.c));
+                    usb_send_msg("cc", '?', &subcommand, sizeof(subcommand));
                     //usb_flush_input_buffer();
                 }
             }
@@ -254,7 +254,7 @@ void Message_Handling_Task()
             break;
         default:
             // What to do if you dont recognize the command character
-            usb_send_msg("cc", command, "?", sizeof(command));
+            usb_send_msg("cc", '?', &command, sizeof(command));
             usb_flush_input_buffer();
             break;
     }
