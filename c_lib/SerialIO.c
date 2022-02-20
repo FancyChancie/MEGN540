@@ -386,13 +386,22 @@ uint8_t usb_msg_length()
 }
 
 /*
- * @brief 
- * 
+ * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in teh receive buffer (null if empty).
  * @return [uint8_t] Next Byte
  */
 uint8_t usb_msg_peek()
 {
     return rb_get_C(&_usb_receive_buffer,0); 
+}
+
+/*
+ * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in teh receive buffer (null if empty).
+ * @param [uint8_t] How many to look ahead (0 = start, 1= next, etc.)
+ * @return [uint8_t] Next Byte
+ */
+uint8_t usb_msg_look_ahead(uint8_t num)
+{
+    return rb_get_C(&_usb_receive_buffer, num);
 }
 
 /**
@@ -433,14 +442,4 @@ bool usb_msg_read_into(void* p_obj, uint8_t data_len)
 void usb_flush_input_buffer()
 {
     rb_initialize_C(&_usb_receive_buffer);
-}
-
-/**
- * Function DebugPrint sends a message according to the MEGN540 USB message format to help with debugging.
- */
-void DebugPrint()
-{
-    struct {char let[5];} debug = {.let = {'D','E','B','U','G'}};
-    usb_send_msg("c5s", '!', &debug, sizeof(debug));
-    usb_flush_input_buffer();
 }

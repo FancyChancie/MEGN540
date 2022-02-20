@@ -172,22 +172,21 @@ void Message_Handling_Task()
             if(usb_msg_length() >= MEGN540_Message_Len('t')){
                 // then process your t...
                 // remove the command from the usb recieved buffer using the usb_msg_get() function
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a t so no need to save it as a variable
-                //DebugPrint();
-                uint8_t subcommand = usb_msg_get();
-                if(subcommand == 0){
-                    usb_send_msg("cc", subcommand, "x", sizeof(subcommand));
+                //usb_msg_get(); // removes the first character from the received buffer, we already know it was a t so no need to save it as a variable
+                //uint8_t subcommand = usb_msg_peek();
+                uint8_t subcommand = usb_msg_look_ahead(1);
+                if(subcommand == 0){    // send time now
                     mf_send_time.active = true; // set flag to true so it knows to send time
-                }else if(subcommand == 1){
+                }else if(subcommand == 1){  // send time to complete one full loop iteration
                     mf_loop_timer.active = true;
                     mf_loop_timer.last_trigger_time = GetTime();
                     mf_loop_timer.duration = -1;
-                }else if(subcommand == 2){
+                }else if(subcommand == 2){  // send time to send float
                     mf_time_float_send.active = true;
                     mf_time_float_send.last_trigger_time = GetTime();
                     mf_time_float_send.duration = -1;
                 }else{
-                    usb_send_msg("cc", subcommand, "y", sizeof(subcommand));
+                    usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
                 }
 
                 // switch(subcommand){
@@ -205,7 +204,7 @@ void Message_Handling_Task()
                 //         mf_time_float_send.duration = -1;
                 //         break;
                 //     default: // don't recognize the subcommand character
-                //         usb_send_msg("cc", subcommand, "y", sizeof(subcommand));
+                //         usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
                 //     break;
                 // }
             }
@@ -259,8 +258,6 @@ void Message_Handling_Task()
             break;
     }
 }
-
-
 
 /**
  * Function MEGN540_Message_Len returns the number of bytes associated with a command string per the

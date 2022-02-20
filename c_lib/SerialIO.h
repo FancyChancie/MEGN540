@@ -149,6 +149,13 @@ uint8_t usb_msg_length();
  */
 uint8_t usb_msg_peek();
 
+/*
+ * (non-blocking) Function usb_msg_peek returns (without removal) the next byte in teh receive buffer (null if empty).
+ * @param [uint8_t] How many to look ahead
+ * @return [uint8_t] Next Byte
+ */
+uint8_t usb_msg_look_ahead(uint8_t num);
+
 /**
  * (non-blocking) Function usb_msg_get removes and returns the next byte in the receive buffer (null if empty)
  * @return [uint8_t] Next Byte
