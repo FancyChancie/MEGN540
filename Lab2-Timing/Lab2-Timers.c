@@ -65,20 +65,19 @@ int main(void)
         
         // [State-machine flag] Send time
         if(MSG_FLAG_Execute(&mf_send_time)){
+            char command = usb_msg_get(); // store main command
+
+            // Build a meaningful structure to put subcommand and time in.
+            struct __attribute__((__packed__)) { uint8_t B; float f; } data;
+            
+            data.B = usb_msg_get();  // store subcommand
+            data.f = GetTimeSec();   // get current time
+
+            mf_send_time.last_trigger_time = GetTime();
+
             if(mf_send_time.duration <= 0){
-                char command = usb_msg_get(); // store command
-
-                // Build a meaningful structure to put subcommand and time in.
-                struct __attribute__((__packed__)) { uint8_t B; float f; } data;
-                
-                data.B = usb_msg_get();  // store subcommand
-                data.f = GetTimeSec();   // get current time
-
                 // send response
                 usb_send_msg("cBf", command, &data, sizeof(data));
-
-                mf_send_time.last_trigger_time = GetTime();
-            // if(mf_send_time.duration <= 0){
                 mf_send_time.active = false;
             }else{
                 // mf_send_time.last_trigger_time = GetTime();
@@ -106,7 +105,7 @@ int main(void)
             if(firstLoop){
                 loopTimeStart = GetTime();   // fill loopTime struct
             }else{
-                char command = usb_msg_get(); // store command
+                char command = usb_msg_get(); // store main command
 
                 // Build a meaningful structure to put subcommand and time in.
                 struct __attribute__((__packed__)) { uint8_t B; float f; } data;
@@ -133,19 +132,29 @@ int main(void)
         // [State-machine flag] Time to send float
         if(MSG_FLAG_Execute(&mf_time_float_send)){
             float gravity = 9.81; // float to send
+
+            char command = usb_msg_get(); // store main command
+
+            // Build a meaningful structure to put subcommand and time in.
+            struct __attribute__((__packed__)) { uint8_t B; float f; } data;
+            
+            data.B = usb_msg_get();  // store subcommand
+            
             Time_t floatSendStart = GetTime();   // struct for time to send float
             usb_send_msg("cf", 'g', &gravity, sizeof(gravity)); // send float
-            float floatSendTime = SecondsSince(&floatSendStart); // get time it took to send float
+            USB_Upkeep_Task(); // wait for send
+            //float floatSendTime = SecondsSince(&floatSendStart); // get time it took to send float
+            data.f = SecondsSince(&floatSendStart);   // get current sincr time
 
             if(mf_time_float_send.duration <= 0){
-                usb_send_msg("cBf", 't', &floatSendTime, sizeof(floatSendTime));
+                usb_send_msg("cBf", command, &data, sizeof(data));
                 mf_time_float_send.active = false;
             }else{
-                struct __attribute__((__packed__)) { float duration; float time; } data;
-                data.duration = mf_time_float_send.duration;
-                data.time = floatSendTime;
-                usb_send_msg("cBf", 'T', &data, sizeof(data));
-                mf_time_float_send.last_trigger_time = GetTime();
+                // struct __attribute__((__packed__)) { float duration; float time; } data;
+                // data.duration = mf_time_float_send.duration;
+                // data.time = floatSendTime;
+                // usb_send_msg("cBf", 'T', &data, sizeof(data));
+                // mf_time_float_send.last_trigger_time = GetTime();
             }
         }
     }

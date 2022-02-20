@@ -177,6 +177,7 @@ void Message_Handling_Task()
                 uint8_t subcommand = usb_msg_look_ahead(1);
                 if(subcommand == 0){    // send time now
                     mf_send_time.active = true; // set flag to true so it knows to send time
+                    mf_send_time.duration = -1;
                 }else if(subcommand == 1){  // send time to complete one full loop iteration
                     mf_loop_timer.active = true;
                     mf_loop_timer.last_trigger_time = GetTime();
