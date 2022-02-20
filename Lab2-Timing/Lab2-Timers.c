@@ -53,7 +53,6 @@ int main(void)
 
     bool firstLoop = true; //tracking variable for mf_loop_timer
 
-    //while(true){
     for (;;){
         //USB_Echo_Task();
         USB_Upkeep_Task();
@@ -118,6 +117,7 @@ int main(void)
                 //float loopTimeEnd = SecondsSince(&loopTimeStart);
                 if(mf_loop_timer.duration <= 0){
                     usb_send_msg("cBf", command, &data, sizeof(data));
+                    mf_loop_timer.active = false;
                 }
                 // }else{
                 //     struct __attribute__((__packed__)) { float duration; float time; } data;
