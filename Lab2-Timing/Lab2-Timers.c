@@ -86,16 +86,6 @@ int main(void)
                 // data.time = currentTime;
                 // usb_send_msg("cBf", 'T', &data, sizeof(data));
             }
-            // if(mf_send_time.duration <= 0){
-            //     usb_send_msg("cf", 't', &currentTime, sizeof(currentTime));
-            //     mf_send_time.active = false;
-            // }else{
-            //     mf_send_time.last_trigger_time = GetTime();
-            //     struct __attribute__((__packed__)) { float duration; float time; } data;
-            //     data.duration = mf_send_time.duration;
-            //     data.time = currentTime;
-            //     usb_send_msg("cBf", 'T', &data, sizeof(data));
-            // }
         }
 
         // [State-machine flag] Time to complete loop
@@ -117,14 +107,13 @@ int main(void)
                 if(mf_loop_timer.duration <= 0){
                     usb_send_msg("cBf", command, &data, sizeof(data));
                     mf_loop_timer.active = false;
-                }
-                // }else{
+                }else{
                 //     struct __attribute__((__packed__)) { float duration; float time; } data;
                 //     data.duration = mf_loop_timer.duration;
                 //     data.time = loopTimeEnd;
                 //     usb_send_msg("cBf", 'T', &data, sizeof(data));
                 //     mf_loop_timer.last_trigger_time = GetTime();
-                // }
+                }
             }
             firstLoop = !firstLoop; // flip boolean since it is only checking the time of one loop
         }
