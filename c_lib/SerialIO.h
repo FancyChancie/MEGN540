@@ -67,6 +67,8 @@
 // *** MEGN540  ***
 // Include your Ring_Buffer homework code.
 #include "Ring_Buffer.h"
+#include "Timing.h"
+#include "MEGN540_MessageHandeling.h"
 
 
 /* LUFA Specific Function Prototypes: */

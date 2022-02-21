@@ -59,6 +59,7 @@ int main(void)
     for (;;){
         //USB_Echo_Task();
         USB_Upkeep_Task();
+
         Message_Handling_Task();
 
         // [State-machine flag] Restart

@@ -63,6 +63,8 @@
 static struct Ring_Buffer_C _usb_receive_buffer;
 static struct Ring_Buffer_C _usb_send_buffer;
 
+Time_t start;
+
 
 /** Contains the current baud rate and other settings of the first virtual serial port. While this demo does not use
  *  the physical USART and thus does not use these settings, they must still be retained and returned to the host
@@ -82,9 +84,16 @@ void USB_Upkeep_Task()
 {
     USB_USBTask();
 
+    start = GetTime();
+
     if(USB_DeviceState != DEVICE_STATE_Configured) return;
     // Get next byte from the USB hardware, send next byte to the USB hardware
     usb_read_next_byte();
+
+    if(MSG_FLAG_Execute(&mf_time_out)){
+            usb_flush_input_buffer(); // reinitialize everything
+        }
+
     usb_write_next_byte();
 }
 
@@ -250,6 +259,10 @@ void usb_read_next_byte()
     if(Endpoint_IsOUTReceived() && Endpoint_BytesInEndpoint()){
         rb_push_back_C(&_usb_receive_buffer, Endpoint_Read_8());
     }
+
+    /*if (SecondsSince(&start) >= 0.1) {
+        mf_time_out.active = true;
+    }*/
 
     /* If selected OUT endpoint has received new packets AND there is NOT any bytes in the endpoint,
     // finalize the stream transfer to send the last packet */
