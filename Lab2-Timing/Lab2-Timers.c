@@ -75,24 +75,15 @@ int main(void)
         
             usb_flush_input_buffer();
 
-            if(mf_send_time.duration <= 0){
-                // send response
-                usb_send_msg("cBf", command, &data, sizeof(data));
+            if(mf_send_time.duration <= 0){ 
+                usb_send_msg("cBf", command, &data, sizeof(data)); // send response
                 mf_send_time.active = false;
-            }else if (SecondsSince(&mf_send_time.last_trigger_time) >= mf_send_time.duration) {
-                    usb_send_msg("cBf", command, &data, sizeof(data));
+            }else if(SecondsSince(&mf_send_time.last_trigger_time) >= mf_send_time.duration){
+                    usb_send_msg("cBf", command, &data, sizeof(data)); // send response
                     mf_send_time.last_trigger_time = GetTime();
-                    mf_send_time.active = true;
                 }
-            // if(mf_send_time.duration <= 0){
-            //     usb_send_msg("cf", 't', &currentTime, sizeof(currentTime));
-            //     mf_send_time.active = false;
             // }else{
             //     mf_send_time.last_trigger_time = GetTime();
-                /*if (SecondsSince(mf_send_time.last_trigger_time) >= data.duration) {
-                    usb_send_msg("cBf", command, &data, sizeof(data));
-                    mf_send_time.last_trigger_time = GetTime();
-                }*/
             //     struct __attribute__((__packed__)) { float duration; float time; } data;
             //     data.duration = mf_send_time.duration;
             //     data.time = currentTime;
@@ -113,11 +104,10 @@ int main(void)
                 struct __attribute__((__packed__)) { uint8_t B; float f; } data;
             
                 data.B = usb_msg_get();  // store subcommand
-                data.f = SecondsSince(&loopTimeStart);;   // get loop time
+                data.f = SecondsSince(&loopTimeStart);   // get loop end time
 
-                //float loopTimeEnd = SecondsSince(&loopTimeStart);
                 if(mf_loop_timer.duration <= 0){
-                    usb_send_msg("cBf", command, &data, sizeof(data));
+                    usb_send_msg("cBf", command, &data, sizeof(data)); // send response
                     mf_loop_timer.active = false;
                 }
                 // }else{
@@ -144,12 +134,11 @@ int main(void)
             
             Time_t floatSendStart = GetTime();   // struct for time to send float
             usb_send_msg("cf", 'g', &gravity, sizeof(gravity)); // send float
-            USB_Upkeep_Task(); // wait for send
-            //float floatSendTime = SecondsSince(&floatSendStart); // get time it took to send float
-            data.f = SecondsSince(&floatSendStart);   // get current sincr time
+            USB_Upkeep_Task(); // wait for send (won't send without this)
+            data.f = SecondsSince(&floatSendStart);   // get time since send
 
             if(mf_time_float_send.duration <= 0){
-                usb_send_msg("cBf", command, &data, sizeof(data));
+                usb_send_msg("cBf", command, &data, sizeof(data)); // send response
                 mf_time_float_send.active = false;
             }else{
                 // struct __attribute__((__packed__)) { float duration; float time; } data;

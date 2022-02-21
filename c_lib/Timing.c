@@ -119,18 +119,21 @@ uint16_t GetMicro()
  * @param p_time_start a pointer to a start time struct
  * @return (Time_t) Time since the other time.
  */
-float  SecondsSince(const Time_t* time_start_p )
+float  SecondsSince(const Time_t* time_start_p)
 {
     float delta_time = 0; // initialize to zero
-    float current_time = (float) GetMilli(); // get the current time (in millisec)
-    delta_time = current_time - time_start_p->millisec;
+    //float current_time = (float) GetMilli(); // get the current time (in millisec)
+    //delta_time = current_time - time_start_p->millisec;
+    float current_time = GetTimeSec(); // get the current time (in sec)
+    delta_time = current_time - (time_start_p->millisec / 1000);
+
     return delta_time;
 }
 
 /** This is the Interrupt Service Routine for the Timer0 Compare A feature.
  * You'll need to set the compare flags properly for it to work.
+ * @param found in /usr/lib/avr/include/avr/iom32u4.h
  */
-// function input found in /usr/lib/avr/include/avr/iom32u4.h
 ISR(TIMER0_COMPA_vect)
 {
     // initialize timer0

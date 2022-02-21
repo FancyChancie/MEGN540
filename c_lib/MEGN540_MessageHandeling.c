@@ -61,9 +61,7 @@ bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag)
  */
 void Message_Handling_Init()
 {
-    // This is where you'd initialize any state machine flags to control your main-loop state machine
-
-    // initialize to the default values.
+    // Initialize any state machine flags to control your main-loop state machine
     MSG_FLAG_Init(&mf_restart);
     MSG_FLAG_Init(&mf_send_time);
     MSG_FLAG_Init(&mf_loop_timer);
@@ -171,10 +169,7 @@ void Message_Handling_Task()
             // case 't' returns the time it requested followed by the time to complete the action specified by the second input char. 
             if(usb_msg_length() >= MEGN540_Message_Len('t')){
                 // then process your t...
-                // remove the command from the usb recieved buffer using the usb_msg_get() function
-                //usb_msg_get(); // removes the first character from the received buffer, we already know it was a t so no need to save it as a variable
-                //uint8_t subcommand = usb_msg_peek();
-                uint8_t subcommand = usb_msg_look_ahead(1);
+                uint8_t subcommand = usb_msg_peek_ahead(1);
                 if(subcommand == 0){    // send time now
                     mf_send_time.active = true; // set flag to true so it knows to send time
                 }else if(subcommand == 1){  // send time to complete one full loop iteration
@@ -186,27 +181,8 @@ void Message_Handling_Task()
                     mf_time_float_send.last_trigger_time = GetTime();
                     mf_time_float_send.duration = -1;
                 }else{
-                    usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
+                    usb_send_msg("cc", '?', &subcommand, sizeof(subcommand));
                 }
-
-                // switch(subcommand){
-                //     case 0: // send time now
-                //         mf_send_time.active = true; // set flag to true so it knows to send time
-                //         break;
-                //     case 1: // send time to complete full loop iteration
-                //         mf_loop_timer.active = true;
-                //         mf_loop_timer.last_trigger_time = GetTime();
-                //         mf_loop_timer.duration = -1;
-                //         break;
-                //     case 2: // send time to send a float
-                //         mf_time_float_send.active = true;
-                //         mf_time_float_send.last_trigger_time = GetTime();
-                //         mf_time_float_send.duration = -1;
-                //         break;
-                //     default: // don't recognize the subcommand character
-                //         usb_send_msg("cc", subcommand, "?", sizeof(subcommand));
-                //     break;
-                // }
             }
             break;
         case 'T':
@@ -214,15 +190,8 @@ void Message_Handling_Task()
             // and returns the time every X milliseconds. If the time is zero or negative it cancels the request without response.
             if(usb_msg_length() >= MEGN540_Message_Len('T')){
                 // then process your T...
-                // remove the command from the usb recieved buffer using the usb_msg_get() function
-                //usb_msg_get(); // removes the first character from the received buffer, we already know it was a T so no need to save it as a variable
-                // Build a meaningful structure to put your data in.
-                // struct __attribute__((__packed__)) { uint8_t c; float v; } data;
-                uint8_t subcommand = usb_msg_look_ahead(1);
-                uint8_t durcommand = usb_msg_look_ahead(2);
-
-                // Copy the bytes from the usb receive buffer into our structure so we can use the information
-                // usb_msg_read_into( &data, sizeof(data) );
+                uint8_t subcommand = usb_msg_peek_ahead(1);
+                uint8_t durcommand = usb_msg_peek_ahead(2);
 
                 if(subcommand <= 0){   // cancel request without response
                     MSG_FLAG_Init(&mf_send_time);
@@ -232,17 +201,16 @@ void Message_Handling_Task()
                     mf_send_time.active = true;
                     mf_send_time.last_trigger_time = GetTime();
                     mf_send_time.duration = durcommand;
-                }else if(subcommand == 2){   // send time to send float
+                }else if(subcommand == 2){   // send time to complete one loop iteration
                     mf_loop_timer.active = true;
                     mf_loop_timer.last_trigger_time = GetTime();
                     mf_loop_timer.duration = durcommand;
-                }else if(subcommand == 3){
+                }else if(subcommand == 3){  // send time to send float
                     mf_time_float_send.active = true;
                     mf_time_float_send.last_trigger_time = GetTime();
                     mf_time_float_send.duration = durcommand;
                 }else{
                     usb_send_msg("cc", '?', &subcommand, sizeof(subcommand));
-                    //usb_flush_input_buffer();
                 }
             }
             break;

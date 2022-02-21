@@ -399,7 +399,7 @@ uint8_t usb_msg_peek()
  * @param [uint8_t] How many to look ahead (0 = start, 1= next, etc.)
  * @return [uint8_t] Next Byte
  */
-uint8_t usb_msg_look_ahead(uint8_t num)
+uint8_t usb_msg_peek_ahead(uint8_t num)
 {
     return rb_get_C(&_usb_receive_buffer, num);
 }
