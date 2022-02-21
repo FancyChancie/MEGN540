@@ -111,18 +111,24 @@ int main(void)
             if(firstLoop){
                 loopTimeStart = GetTime();   // fill loopTime struct
             }else{
-                char command = usb_msg_get(); // store main command
+                command = mf_loop_timer.command;
+                data.B = mf_loop_timer.subcommand;
+                data.f = SecondsSince(&loopTimeStart); 
 
-                // Build a meaningful structure to put subcommand and time in.
-                struct __attribute__((__packed__)) { uint8_t B; float f; } data;
-            
-                data.B = usb_msg_get();  // store subcommand
-                data.f = SecondsSince(&loopTimeStart);   // get loop end time
+                usb_flush_input_buffer();
 
-                if(mf_loop_timer.duration <= 0){
+                if(mf_loop_timer.duration <= 0){ 
                     usb_send_msg("cBf", command, &data, sizeof(data)); // send response
                     mf_loop_timer.active = false;
-                }
+                }else if(SecondsSince(&mf_loop_timer.last_trigger_time) >= mf_loop_timer.duration){
+                        usb_send_msg("cBf", command, &data, sizeof(data)); // send response
+                        mf_loop_timer.last_trigger_time = GetTime();
+                    }
+
+                /*if(mf_loop_timer.duration <= 0){
+                    usb_send_msg("cBf", command, &data, sizeof(data)); // send response
+                    mf_loop_timer.active = false;
+                }*/
                 // }else{
                 //     struct __attribute__((__packed__)) { float duration; float time; } data;
                 //     data.duration = mf_loop_timer.duration;

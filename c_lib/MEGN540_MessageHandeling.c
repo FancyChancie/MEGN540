@@ -200,13 +200,11 @@ void Message_Handling_Task()
                 //uint8_t subcommand = usb_msg_peek_ahead(1);
                 //uint8_t durcommand = usb_msg_peek_ahead(2);
 
-                mf_send_time.command = usb_msg_get();
+                char c = usb_msg_get();
 
                 struct __attribute__((__packed__)) { uint8_t B; float f; } data;
 
                 usb_msg_read_into( &data, sizeof(data) );
-
-                mf_send_time.subcommand = data.B;
 
                 if(data.B <= 0){   // cancel request without response
                     MSG_FLAG_Init(&mf_send_time);
@@ -215,15 +213,21 @@ void Message_Handling_Task()
                 }else if(data.B == 1){   // send time every 'duration' milliseconds
                     mf_send_time.active = true;
                     mf_send_time.last_trigger_time = GetTime();
-                    mf_send_time.duration = data.f;
+                    mf_send_time.duration = data.f/1000.0;
+                    mf_send_time.command = c;
+                    mf_send_time.subcommand = data.B;
                 }else if(data.B == 2){   // send time to complete one loop iteration
                     mf_loop_timer.active = true;
                     mf_loop_timer.last_trigger_time = GetTime();
-                    mf_loop_timer.duration = data.f;
+                    mf_loop_timer.duration = data.f/1000.0;
+                    mf_loop_timer.command = c;
+                    mf_loop_timer.subcommand = data.B;
                 }else if(data.B == 3){  // send time to send float
                     mf_time_float_send.active = true;
                     mf_time_float_send.last_trigger_time = GetTime();
-                    mf_time_float_send.duration = data.f;
+                    mf_time_float_send.duration = data.f/1000.0;
+                    mf_time_float_send.command = c;
+                    mf_time_float_send.subcommand = data.B;
                 }else{
                     usb_send_msg("cc", '?', &data.B, sizeof(data.B));
                 }
