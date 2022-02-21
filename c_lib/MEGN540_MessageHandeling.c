@@ -169,19 +169,26 @@ void Message_Handling_Task()
             // case 't' returns the time it requested followed by the time to complete the action specified by the second input char. 
             if(usb_msg_length() >= MEGN540_Message_Len('t')){
                 // then process your t...
-                uint8_t subcommand = usb_msg_peek_ahead(1);
-                if(subcommand == 0){    // send time now
+                //uint8_t subcommand = usb_msg_peek_ahead(1);
+
+                mf_send_time.command = usb_msg_get();
+
+                uint8_t sc = usb_msg_get();
+
+                mf_send_time.subcommand = sc;
+
+                if(sc == 0){    // send time now
                     mf_send_time.active = true; // set flag to true so it knows to send time
-                }else if(subcommand == 1){  // send time to complete one full loop iteration
+                }else if(sc == 1){  // send time to complete one full loop iteration
                     mf_loop_timer.active = true;
                     mf_loop_timer.last_trigger_time = GetTime();
                     mf_loop_timer.duration = -1;
-                }else if(subcommand == 2){  // send time to send float
+                }else if(sc == 2){  // send time to send float
                     mf_time_float_send.active = true;
                     mf_time_float_send.last_trigger_time = GetTime();
                     mf_time_float_send.duration = -1;
                 }else{
-                    usb_send_msg("cc", '?', &subcommand, sizeof(subcommand));
+                    usb_send_msg("cc", '?', &sc, sizeof(sc));
                 }
             }
             break;
@@ -190,27 +197,35 @@ void Message_Handling_Task()
             // and returns the time every X milliseconds. If the time is zero or negative it cancels the request without response.
             if(usb_msg_length() >= MEGN540_Message_Len('T')){
                 // then process your T...
-                uint8_t subcommand = usb_msg_peek_ahead(1);
-                uint8_t durcommand = usb_msg_peek_ahead(2);
+                //uint8_t subcommand = usb_msg_peek_ahead(1);
+                //uint8_t durcommand = usb_msg_peek_ahead(2);
 
-                if(subcommand <= 0){   // cancel request without response
+                mf_send_time.command = usb_msg_get();
+
+                struct __attribute__((__packed__)) { uint8_t B; float f; } data;
+
+                usb_msg_read_into( &data, sizeof(data) );
+
+                mf_send_time.subcommand = data.B;
+
+                if(data.B <= 0){   // cancel request without response
                     MSG_FLAG_Init(&mf_send_time);
                     MSG_FLAG_Init(&mf_loop_timer);
                     MSG_FLAG_Init(&mf_time_float_send);
-                }else if(subcommand == 1){   // send time every 'duration' milliseconds
+                }else if(data.B == 1){   // send time every 'duration' milliseconds
                     mf_send_time.active = true;
                     mf_send_time.last_trigger_time = GetTime();
-                    mf_send_time.duration = durcommand;
-                }else if(subcommand == 2){   // send time to complete one loop iteration
+                    mf_send_time.duration = data.f;
+                }else if(data.B == 2){   // send time to complete one loop iteration
                     mf_loop_timer.active = true;
                     mf_loop_timer.last_trigger_time = GetTime();
-                    mf_loop_timer.duration = durcommand;
-                }else if(subcommand == 3){  // send time to send float
+                    mf_loop_timer.duration = data.f;
+                }else if(data.B == 3){  // send time to send float
                     mf_time_float_send.active = true;
                     mf_time_float_send.last_trigger_time = GetTime();
-                    mf_time_float_send.duration = durcommand;
+                    mf_time_float_send.duration = data.f;
                 }else{
-                    usb_send_msg("cc", '?', &subcommand, sizeof(subcommand));
+                    usb_send_msg("cc", '?', &data.B, sizeof(data.B));
                 }
             }
             break;

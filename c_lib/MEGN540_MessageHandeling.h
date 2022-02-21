@@ -39,7 +39,7 @@
 #include "Timing.h"
 
 /** Message Driven State Machine Flags */
-typedef struct MSG_FLAG { bool active; float duration; Time_t last_trigger_time; } MSG_FLAG_t;
+typedef struct MSG_FLAG { bool active; float duration; char command; uint8_t subcommand; Time_t last_trigger_time; } MSG_FLAG_t;
 
 
 MSG_FLAG_t mf_restart;           ///<-- This flag indicates that the device received a restart command from the host. Default inactive.

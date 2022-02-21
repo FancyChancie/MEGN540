@@ -53,6 +53,9 @@ int main(void)
 
     bool firstLoop = true; //tracking variable for mf_loop_timer
 
+    char command;
+    struct __attribute__((__packed__)) { uint8_t B; float f; } data;
+
     for (;;){
         //USB_Echo_Task();
         USB_Upkeep_Task();
@@ -65,14 +68,24 @@ int main(void)
         
         // [State-machine flag] Send time
         if(MSG_FLAG_Execute(&mf_send_time)){
-            char command = usb_msg_get(); // store main command
+            //char command = usb_msg_get(); // store main command
+            /*if (repeat == false) {
+                command = usb_msg_get();
 
-            // Build a meaningful structure to put subcommand and time in.
-            struct __attribute__((__packed__)) { uint8_t B; float f; } data;
+                // Build a meaningful structure to put subcommand and time in.
+                //struct __attribute__((__packed__)) { uint8_t B; float f; } data;
+                
+                data.B = usb_msg_get();  // store subcommand
+                data.f = GetTimeSec();   // get current time
             
-            data.B = usb_msg_get();  // store subcommand
-            data.f = GetTimeSec();   // get current time
-        
+                usb_flush_input_buffer();
+            }*/
+
+            command = mf_send_time.command;
+            data.B = mf_send_time.subcommand;
+            data.f = GetTimeSec(); 
+            //data.f = mf_send_time.duration;
+
             usb_flush_input_buffer();
 
             if(mf_send_time.duration <= 0){ 
