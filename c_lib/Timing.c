@@ -121,13 +121,15 @@ uint16_t GetMicro()
  */
 float  SecondsSince(const Time_t* time_start_p)
 {
-    float delta_time = 0; // initialize to zero
+    // float delta_time = 0; // initialize to zero
     //float current_time = (float) GetMilli(); // get the current time (in millisec)
     //delta_time = current_time - time_start_p->millisec;
-    float current_time = GetTimeSec(); // get the current time (in sec)
-    delta_time = current_time - (time_start_p->millisec / 1000);
-
-    return delta_time;
+    //float current_time = GetTimeSec(); // get the current time (in sec)
+    //delta_time = current_time - (time_start_p->millisec / 1000);
+    //return delta_time;
+    float delta_time = 0; // initialize to zero
+    Time_t current_time = GetTime();
+    return delta_time = ((current_time.microsec-time_start_p->microsec)/1e6 + (current_time.millisec-time_start_p->millisec))/1e3;
 }
 
 /** This is the Interrupt Service Routine for the Timer0 Compare A feature.
