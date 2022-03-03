@@ -67,7 +67,8 @@ void Message_Handling_Init()
     MSG_FLAG_Init(&mf_loop_timer);
     MSG_FLAG_Init(&mf_time_float_send);
     MSG_FLAG_Init(&mf_time_out);
-
+    MSG_FLAG_Init(&mf_send_encoder);
+    MSG_FLAG_Init(&mf_send_voltage);
 }
 
 /**
@@ -232,6 +233,34 @@ void Message_Handling_Task()
                 }else{
                     usb_send_msg("cc", '?', &data.B, sizeof(data.B));
                 }
+            }
+            break;
+        case 'e':
+            // case 'e' returns the left and right encoder values
+            if(usb_msg_length() >= MEGN540_Message_Len('e')){
+                // then process your e...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
+            }
+            break;
+        case 'E':
+            // case 'E' returns the left and right encoder values every X milliseconds specified by float sent.
+            // If the float sent is less-than-or-equal-to zero, the request is canceled.
+            if(usb_msg_length() >= MEGN540_Message_Len('E')){
+                // then process your E...
+            }
+            break;
+        case 'b':
+            // case 'b' returns the current battery voltage level
+            if(usb_msg_length() >= MEGN540_Message_Len('b')){
+                // then process your b...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a b so no need to save it as a variable
+            }
+            break;
+        case 'B':
+            // case 'B' returns the current battery voltage level every X seconds as sepcified by the float sent.
+            // If the float is less-than-or-equal-to zero, the request is canceled.
+            if(usb_msg_length() >= MEGN540_Message_Len('B')){
+                // then process your B...
             }
             break;
         case '~':
