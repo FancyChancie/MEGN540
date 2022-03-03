@@ -10,7 +10,7 @@ static const float BITS_TO_BATTERY_VOLTS = 1023;
  */
 void Battery_Monitor_Init()
 {
-    // VBAT pin PF6/ADC6 (aka A1)
+    //// VBAT pin PF6/ADC6 (aka A1) ////
     // Enable ADC (Sec. 24.9.2)
     ADCSRA |= (1 << ADEN);
 
@@ -36,20 +36,20 @@ float Battery_Voltage()
 {
     // A Union to assist with reading the LSB and MSB in the 16 bit register
     union { struct {uint8_t LSB; uint8_t MSB; } split; uint16_t value;} data;
-    // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON)
+    
+    // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON) (Sec. 14.2)
     SREG_copy = SREG;
         // Disable global interrupts
-        cli();
+        __disable_interrupt();
         // Start ADC conversion (resets itself to 0 after conversion complete) (Sec. 24.9.2)
         ADCSRA |= (1 << ADSC);
+        
         while(ADSC){
             // Save ADC Low byte into union stuct (Sec. 24.9.3)
             data.split.LSB = ADCL;
             // Save ADC high byte into union struct
             data.split.MSB = ADCH;
         }
-        // Enable global interrupts
-        sei();
     // Restore interrupt settings
     SREG = SREG_copy;
 
