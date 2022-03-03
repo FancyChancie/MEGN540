@@ -56,20 +56,20 @@ void Encoders_Init()
 
     //// Left encoder (PCINT4, pins PB4 & PE2) ////
     // Set pins PB4 & PE2 as digital inputs (0=input, 1=output) (Sec. 10.2.1)
-    DDRB &= (0 << DDB4);
-    DDRE &= (0 << DDE2);
+    DDRB   &= (0 << DDB4);
+    DDRE   &= (0 << DDE2);
     // Set PB4 & PE2 pins as input with pull-up resistor deactivated (0=deactivated, 1=activated) (Sec. 10.2.1)
-    PORTB &= (1 << PORTB4);
-    PORTE &= (1 << PORTE2);
+    PORTB  &= (1 << PORTB4);
+    PORTE  &= (1 << PORTE2);
     // Enable interrupt trigger request for PCINT4 (Sec. 11.1.5)
-    PCICR |= (1 << PCIE0);
+    PCICR  |= (1 << PCIE0);
     // Enable external interrupt on any change of PCINT4 (Sec. 11.1.7)
     PCMSK0 |= (1 << PCINT4);
 
     //// Right Encoder (INT6, pins PE6 & PF0) ////
     // Set pins PE6 & PF0 as digial inputs (0=input, 1=output) (Sec. 10.2.1)
-    DDRE &= (1 << DDE6);
-    DDRF &= (1 << DDF0);
+    DDRE  &= (1 << DDE6);
+    DDRF  &= (1 << DDF0);
     // Set PE6 & PF0 pins as input with pull-up resistor deactivated (0=deactivated, 1=activated) (Sec. 10.2.1)
     PORTE &= (1 << PORTE6);
     PORTF &= (1 << PORTF0);
@@ -77,7 +77,7 @@ void Encoders_Init()
     EMISK |= (1 << INT6);
     // Enable external interrupt on any logical change of INT6 (Sec. 11.1.2)
     EICRB |= (1 << ISC60);
-    ECIRB &= (0 << ISC61);
+    ECIRB &= (1 << ISC61);
 }
 
 
@@ -91,11 +91,14 @@ int32_t Counts_Left()
     // multiple clock cycles to read/save. You may want to stop interrupts, copy the value,
     // and re-enable interrupts to prevent this from corrupting your read/write.
     
-    SREG_copy = SREG; // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON))
-        cli(); // Disable global interrupts
-        int32_t L_Count = _left_counts; // store left encoder counts
-        sei();  // Enable global interrupts
-    SREG = SREG_copy; // Restore interrupt settings
+    // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON)) (Sec. 14.2)
+    SREG_copy = SREG;
+        // Disable global interrupts
+        __disable_interrupt();
+        // store left encoder counts
+        int32_t L_Count = _left_counts;
+    // Restore interrupt settings
+    SREG = SREG_copy;
 
     return L_Count;
 }
@@ -110,11 +113,14 @@ int32_t Counts_Right()
     // multiple clock cycles to read/save. You may want to stop interrupts, copy the value,
     // and re-enable interrupts to prevent this from corrupting your read/write.
 
-    SREG_copy = SREG; // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON)
-        cli(); // Disable global interrupts
-        int32_t R_Count = _right_counts; // store left encoder counts
-        sei();  // Enable global interrupts
-    SREG = SREG_copy; // Restore interrupt settings
+    // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON) (Sec. 14.2)
+    SREG_copy = SREG;
+        // Disable global interrupts
+        __disable_interrupt();
+        // store left encoder counts
+        int32_t R_Count = _right_counts;
+    // Restore interrupt settings
+    SREG = SREG_copy;
 
     return R_Count;
 }
