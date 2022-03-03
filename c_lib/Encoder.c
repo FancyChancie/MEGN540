@@ -39,19 +39,16 @@ void Encoders_Init()
     You'll use the INT6_vect ISR flag.
     */
 
-    // Initialize static file variables. These probably need to be updated.
-    /*
-    NOT SURE WHAT TO DO HERE!!!!
-    */
-    _last_right_A  = 0;  // MEGN540 Lab 3 TODO
-    _last_right_B  = 0;  // MEGN540 Lab 3 TODO
+    // Initialize static file variables. 
+    _last_right_A  = 0;
+    _last_right_B  = 0;
 
-    _last_left_A   = 0;  // MEGN540 Lab 3 TODO
-    _last_left_B   = 0;  // MEGN540 Lab 3 TODO
-    _last_left_XOR = 0;  // MEGN540 Lab 3 TODO
+    _last_left_A   = 0;
+    _last_left_B   = 0;
+    _last_left_XOR = 0;
 
-    _left_counts   = 0;  // MEGN540 Lab 3 TODO
-    _right_counts  = 0;  // MEGN540 Lab 3 TODO
+    _left_counts   = 0;
+    _right_counts  = 0;
 
 
     //// Left encoder (PCINT4, pins PB4 & PE2) ////
