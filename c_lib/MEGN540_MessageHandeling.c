@@ -236,14 +236,14 @@ void Message_Handling_Task()
             }
             break;
         case 'e':
-            // case 'e' returns the left and right encoder values
+            // case 'e' returns the left and right encoder values [in radians]
             if(usb_msg_length() >= MEGN540_Message_Len('e')){
                 // then process your e...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
             }
             break;
         case 'E':
-            // case 'E' returns the left and right encoder values every X milliseconds specified by float sent.
+            // case 'E' returns the left and right encoder values [in radians] every X milliseconds specified by float sent.
             // If the float sent is less-than-or-equal-to zero, the request is canceled.
             if(usb_msg_length() >= MEGN540_Message_Len('E')){
                 // then process your E...

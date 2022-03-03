@@ -58,6 +58,7 @@ int main(void)
 
     // Tracking variable for mf_loop_timer
     bool firstLoop = true;
+    bool firstLoopV = true;
 
     // Variable for storing user command
     char command;
@@ -69,13 +70,13 @@ int main(void)
         .volt = bat_volt
     };
 
-    // Battery voltage stuff
-    // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
-    float unfiltered_voltage = Battery_Voltage();
-    // Order & coefficients for Butterworth filter from homework
+    //// Battery voltage stuff ////
+    // Minimum battery voltage (min NiMh batt voltage * num batteries)
+    float minBatVoltage = 1.2 * 4;
+    // Order & coefficients for Butterworth filter from homework (cut off = 15Hz, sampling = 500 Hz, order 4)
     int   order = 4;
     float numerator_coeffs[5]   = {8.063598650370949e-04,0.003225439460148,0.004838159190223,0.003225439460148,8.063598650370949e-04}; // Matlab B values
-    float denominator_coeffs[5] = {1,-3.017555238686491,3.507193724716209,-1.847550944118580,0.370814215929455}; // Matlab A values
+    float denominator_coeffs[5] = {6.238698354847990e-05,2.495479341939196e-04,3.743219012908794e-04,2.495479341939196e-04,6.238698354847990e-05}; // Matlab A values
     // Create instance of filter stucture for battery voltage
     Filter_Data_t voltage_Filter
     // Initalize filter (might be good to add an if to the Initalize() call to reinitalize this too, if needed)
@@ -164,13 +165,16 @@ int main(void)
             usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData));
         }
 
-        // get & filter voltage every iteration (can we do this every X iterations or X seconds?)
-        unfiltered_voltage = Battery_Voltage();
-        float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+        if(firstLoopV){
+            // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
+            float unfiltered_voltage = Battery_Voltage();
+            float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+            !firstLoopV
+        }
 
         // [State-machine flag] Send battery voltage
         if(MSG_FLAG_Execute(&mf_send_voltage)){
-            
+            float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
             usb_send_msg("cf", 'b', filtered_voltage, sizeof(filtered_voltage));
         }
     }
