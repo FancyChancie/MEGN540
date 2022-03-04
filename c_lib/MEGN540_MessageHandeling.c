@@ -240,6 +240,8 @@ void Message_Handling_Task()
             if(usb_msg_length() >= MEGN540_Message_Len('e')){
                 // then process your e...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
+                     
+                mf_send_voltage.active = true;
             }
             break;
         case 'E':
@@ -254,6 +256,8 @@ void Message_Handling_Task()
             if(usb_msg_length() >= MEGN540_Message_Len('b')){
                 // then process your b...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a b so no need to save it as a variable
+                     
+                mf_send_voltage.active = true;
             }
             break;
         case 'B':
