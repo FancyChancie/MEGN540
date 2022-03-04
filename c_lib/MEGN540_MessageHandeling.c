@@ -241,7 +241,7 @@ void Message_Handling_Task()
                 // then process your e...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
                      
-                mf_send_voltage.active = true;
+                mf_send_encoder.active = true;
             }
             break;
         case 'E':
@@ -249,6 +249,16 @@ void Message_Handling_Task()
             // If the float sent is less-than-or-equal-to zero, the request is canceled.
             if(usb_msg_length() >= MEGN540_Message_Len('E')){
                 // then process your E...
+                char c = usb_msg_get();
+                float f = usb_msg_get();
+                     
+                if(f <= 0){   // cancel request without response
+                    MSG_FLAG_Init(&mf_send_encoder);
+                }else {   // send time every 'duration' milliseconds
+                    mf_send_encoder.active = true;
+                    mf_send_encoder.last_trigger_time = GetTime();
+                    mf_send_encoder.duration = f/1000.0;
+                    mf_send_encoder.command = c;
             }
             break;
         case 'b':
@@ -265,6 +275,17 @@ void Message_Handling_Task()
             // If the float is less-than-or-equal-to zero, the request is canceled.
             if(usb_msg_length() >= MEGN540_Message_Len('B')){
                 // then process your B...
+                char c = usb_msg_get();
+                float f = usb_msg_get();
+                     
+                if(f <= 0){   // cancel request without response
+                    MSG_FLAG_Init(&mf_send_voltage);
+                }else {   // send time every 'duration' seconds
+                    mf_send_voltage.active = true;
+                    mf_send_voltage.last_trigger_time = GetTime();
+                    mf_send_voltage.duration = f;
+                    mf_send_voltage.command = c;
+            }
             }
             break;
         case '~':
