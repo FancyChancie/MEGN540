@@ -71,6 +71,10 @@ int main(void)
     };
 
     //// Battery voltage stuff ////
+    // Battery check interval (every seonds)
+    float batUpdateInterval = 0.002;
+    // Time structure for getting voltage and filtering at intervals
+    Time_t BatVoltageFilter = GetTime();
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.2 * 4;
     // Order & coefficients for Butterworth filter from homework (cut off = 15Hz, sampling = 500 Hz, order 4)
@@ -83,7 +87,7 @@ int main(void)
     Filter_Init(&voltage_Filter, &numerator_coeffs, &denominator_coeffs, order);
 
     for (;;){
-        //USB_Echo_Task();
+        // USB_Echo_Task();
         USB_Upkeep_Task();
         Message_Handling_Task();
 
@@ -158,24 +162,56 @@ int main(void)
 
         // [State-machine flag] Send encoder counts
         if(MSG_FLAG_Execute(&mf_encoder_count)){
-            // Build a meaningful structure to put encoder counts in.
-            struct __attribute__((packed)) { float L_Count; float R_Count; } encoderData;
-            encoderData.L_Count = Counts_Left();
-            encoderData.R_Count = Counts_Right();
-            usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData));
+            // Build a meaningful structure to put encoder radians in into.
+            struct __attribute__((packed)) { float L_Rad; float R_Rad; } encoderData;
+            encoderData.L_Rad = Rad_Left();
+            encoderData.R_Rad = Rad_Right();
+
+            // usb_flush_input_buffer();
+
+            if(mf_send_encoder.duration <= 0){
+                usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData)); // send response
+                mf_send_encoder.active = false;
+            }else if(SecondsSince(&mf_send_encoder.last_trigger_time) >= mf_send_encoder.duration){
+                usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData)); // send response
+                mf_send_encoder.last_trigger_time = GetTime();
+            }
         }
 
-        if(firstLoopV){
+        // Battery voltage measurement every 2 ms.
+        if(SecondsSince(&BatVoltageFilter) >= batUpdateInterval){
             // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
             float unfiltered_voltage = Battery_Voltage();
+            // Set time battery voltage was retreived
+            BatVoltageFilter = GetTime();
+
+            if(firstLoopV){
+                // Initialize filter with unfiltered_voltage values
+                Filter_SetTo(&voltage_Filter,unfiltered_voltage);
+                firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
+            }
+            // Get/set filtered voltage value
             float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
-            !firstLoopV
+
+            // Send warning if battery voltage below minimum voltage
+            if(filtered_voltage >= minBatVoltage){
+                msg.volt = filtered_voltage;
+                usb_send_msg("c7sf",'!',&msg,sizeof(msg));
+            }
         }
+        
 
         // [State-machine flag] Send battery voltage
         if(MSG_FLAG_Execute(&mf_send_voltage)){
-            float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
-            usb_send_msg("cf", 'b', filtered_voltage, sizeof(filtered_voltage));
+            if(mf_send_voltage.duration <= 0){
+                usb_send_msg("cf", 'b', filtered_voltage, sizeof(filtered_voltage));
+                mf_send_voltage.active = false;
+            }else if(SecondsSince(&mf_send_voltage.last_trigger_time) >= mf_send_voltage.duration){
+                float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+                usb_send_msg("cf", 'b', filtered_voltage, sizeof(filtered_voltage));
+                mf_send_voltage.last_trigger_time = GetTime();
+            }
+            
         }
     }
 }
