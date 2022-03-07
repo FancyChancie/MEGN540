@@ -77,10 +77,10 @@ int main(void)
     Time_t BatVoltageFilter = GetTime();
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.2 * 4;
-    // Order & coefficients for Butterworth filter from homework (cut off = 15Hz, sampling = 500 Hz, order 4)
+    // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz, sampling = 125000Hz, order 4)
     int   order = 4;
-    float numerator_coeffs[5]   = {8.063598650370949e-04,0.003225439460148,0.004838159190223,0.003225439460148,8.063598650370949e-04}; // Matlab B values
-    float denominator_coeffs[5] = {6.238698354847990e-05,2.495479341939196e-04,3.743219012908794e-04,2.495479341939196e-04,6.238698354847990e-05}; // Matlab A values
+    float numerator_coeffs[5]   = {6.238698354847990e-05,2.495479341939196e-04,3.743219012908794e-04,2.495479341939196e-04,6.238698354847990e-05}; // Matlab B values
+    float denominator_coeffs[5] = {1,-3.507786207390781,4.640902412686705,-2.742652821120371,0.610534807561223}; // Matlab A values
     // Create instance of filter stucture for battery voltage
     Filter_Data_t voltage_Filter
     // Initalize filter (might be good to add an if to the Initalize() call to reinitalize this too, if needed)
