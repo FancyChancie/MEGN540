@@ -40,21 +40,21 @@ float Battery_Voltage()
     // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON) (Sec. 14.2)
     char SREG_copy = SREG;
         // Disable global interrupts
-        __disable_interrupt();
-        // cli();
+        // __disable_interrupt();
+        cli();
         // Start ADC conversion (resets itself to 0 after conversion complete) (Sec. 24.9.2)
         ADCSRA |= (1 << ADSC);
         
-        while(ADSC){
-            // Save ADC Low byte into union stuct (Sec. 24.9.3)
+        while(ADCSRA & (1<<ADSC)){
+            
+        }
+
+        // Save ADC Low byte into union stuct (Sec. 24.9.3)
             data.split.LSB = ADCL;
             // Save ADC high byte into union struct
             data.split.MSB = ADCH;
-        }
     // Restore interrupt settings
     SREG = SREG_copy;
-
-    data.value = data.split.LSB + data.split.MSB;
 
     return (float) data.value * BITS_TO_BATTERY_VOLTS;
 }

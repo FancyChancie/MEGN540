@@ -200,7 +200,8 @@ int main(void)
                 firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
             }
             // Get/set filtered voltage value
-            filtered_voltage = unfiltered_voltage; //Filter_Value(&voltage_Filter,unfiltered_voltage);
+            // filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+            filtered_voltage = unfiltered_voltage;
 
             // Send warning if battery voltage below minimum voltage
             if(filtered_voltage <= minBatVoltage){
