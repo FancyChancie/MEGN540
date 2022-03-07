@@ -187,27 +187,27 @@ int main(void)
             }
         }
 
-        // // Battery voltage measurement every 2 ms.
-        // if(SecondsSince(&BatVoltageFilter) >= batUpdateInterval){
-        //     // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
-        //     unfiltered_voltage = Battery_Voltage();
-        //     // Set time battery voltage was retreived
-        //     BatVoltageFilter = GetTime();
+        // Battery voltage measurement every 2 ms.
+        if(SecondsSince(&BatVoltageFilter) >= batUpdateInterval){
+            // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
+            // unfiltered_voltage = Battery_Voltage();
+            // Set time battery voltage was retreived
+            BatVoltageFilter = GetTime();
 
-        //     if(firstLoopV){
-        //         // Initialize filter with unfiltered_voltage values
-        //         Filter_SetTo(&voltage_Filter,unfiltered_voltage);
-        //         firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
-        //     }
-        //     // Get/set filtered voltage value
-        //     filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+            if(firstLoopV){
+                // Initialize filter with unfiltered_voltage values
+                Filter_SetTo(&voltage_Filter,unfiltered_voltage);
+                firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
+            }
+            // Get/set filtered voltage value
+            filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
 
-        //     // Send warning if battery voltage below minimum voltage
-        //     if(filtered_voltage >= minBatVoltage){
-        //         msg.volt = filtered_voltage;
-        //         usb_send_msg("c7sf",'!',&msg,sizeof(msg));
-        //     }
-        // }
+            // Send warning if battery voltage below minimum voltage
+            if(filtered_voltage >= minBatVoltage){
+                msg.volt = filtered_voltage;
+                usb_send_msg("c7sf",'!',&msg,sizeof(msg));
+            }
+        }
         
         // [State-machine flag] Send battery voltage
         if(MSG_FLAG_Execute(&mf_send_voltage)){
