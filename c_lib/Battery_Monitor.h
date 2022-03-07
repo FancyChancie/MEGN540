@@ -39,6 +39,7 @@
 #ifndef _LAB3_BATTERY_MONITOR_H
 #define _LAB3_BATTERY_MONITOR_H
 
+#include <avr/interrupt.h> // For Interrupts
 #include <avr/io.h>        // For pin input/output access
 #include <ctype.h>         // For int32_t type
 
