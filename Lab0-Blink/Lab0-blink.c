@@ -28,9 +28,9 @@
 
 */
 
-#define F_CPU 16000000
+//#define F_CPU 16000000
 #include "led_interface.h"
-
+#include <string.h>
 /**
  * Function blink_string takes a c-string and blinks the morse code corresponding to the characters provided.
  * @param str pointer to a null-germinated c-string object
