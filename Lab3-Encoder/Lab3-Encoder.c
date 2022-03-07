@@ -77,7 +77,7 @@ int main(void)
     };
 
     //// Battery voltage stuff ////
-    // Battery check interval (every seonds)
+    // Battery check interval (every seconds)
     float batUpdateInterval = 0.002;
     // Time structure for getting voltage and filtering at intervals
     Time_t BatVoltageFilter = GetTime();
@@ -190,7 +190,7 @@ int main(void)
         // Battery voltage measurement every 2 ms.
         if(SecondsSince(&BatVoltageFilter) >= batUpdateInterval){
             // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
-            // unfiltered_voltage = Battery_Voltage();
+            unfiltered_voltage = Battery_Voltage();
             // Set time battery voltage was retreived
             BatVoltageFilter = GetTime();
 
@@ -200,10 +200,10 @@ int main(void)
                 firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
             }
             // Get/set filtered voltage value
-            filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+            filtered_voltage = unfiltered_voltage; //Filter_Value(&voltage_Filter,unfiltered_voltage);
 
             // Send warning if battery voltage below minimum voltage
-            if(filtered_voltage >= minBatVoltage){
+            if(filtered_voltage <= minBatVoltage){
                 msg.volt = filtered_voltage;
                 usb_send_msg("c7sf",'!',&msg,sizeof(msg));
             }
@@ -215,7 +215,6 @@ int main(void)
                 usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
                 mf_send_voltage.active = false;
             }else if(SecondsSince(&mf_send_voltage.last_trigger_time) >= mf_send_voltage.duration){
-                float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
                 usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
                 mf_send_voltage.last_trigger_time = GetTime();
             }

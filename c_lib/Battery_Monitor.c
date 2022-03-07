@@ -46,12 +46,11 @@ float Battery_Voltage()
         ADCSRA |= (1 << ADSC);
         
         while(ADSC){
-            
-        }
-        // Save ADC Low byte into union stuct (Sec. 24.9.3)
+            // Save ADC Low byte into union stuct (Sec. 24.9.3)
             data.split.LSB = ADCL;
             // Save ADC high byte into union struct
             data.split.MSB = ADCH;
+        }
     // Restore interrupt settings
     SREG = SREG_copy;
 
