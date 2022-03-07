@@ -70,11 +70,16 @@ void Encoders_Init()
     // Set PE6 & PF0 pins as input with pull-up resistor deactivated (0=deactivated, 1=activated) (Sec. 10.2.1)
     PORTE &= (1 << PORTE6);
     PORTF &= (1 << PORTF0);
-    // Enable interrupt trigger request for INT6 (Sec. 11.1.3)
-    EIMSK |= (1 << INT6);
+    
+    // Need to clear Interrupt Enable bit of EIMSK register when setting ISC161/ISC160 (Note in Sec 11.1.2)
+    EIMSK &= (1 << INT6);
+
     // Enable external interrupt on any logical change of INT6 (Sec. 11.1.2)
     EICRB |= (1 << ISC60);
-    EICRB &= (1 << ISC61);
+    //EICRB &= (1 << ISC61);
+
+    // Enable interrupt trigger request for INT6 (Sec. 11.1.3)
+    EIMSK |= (1 << INT6);
 }
 
 
@@ -133,7 +138,7 @@ float Rad_Left()
     // Store counts per revolution (Sec. 3.4 of Zumo 32U4 datasheet)
     float CPR = 909.7;
     // Convert to radians and return value
-    float Rad_Left = Counts_Left() * (2 * 3.14)/CPR;
+    float Rad_Left = Counts_Left() * ((2 * 3.14159265359)/CPR);
     return Rad_Left;
 }
 
@@ -146,7 +151,7 @@ float Rad_Right()
     // Store counts per revolution (Sec. 3.4 of Zumo 32U4 datasheet)
     float CPR = 909.7;
     // Convert to radians and return value
-    float Rad_Right = Counts_Right() * (2 * 3.14)/CPR;
+    float Rad_Right = Counts_Right() * ((2 * 3.14159265359)/CPR);
     return Rad_Right;
 }
 
