@@ -17,11 +17,11 @@ static volatile int32_t _right_counts;  // Static limits it's use to this file
 // Hint, use avr's bit_is_set function to help (found in avr/sfr_degs.h)
 static inline bool Right_XOR() { return bit_is_set(PINE,PE6); } // (Port E Input Pins Address, INT6 <- Sec. 10.4.13)
 static inline bool Right_B()   { return bit_is_set(PINF,PF0); } // (Port F Input Pins Address, ADC0 <- Sec. 10.4.16)
-static inline bool Right_A()   { return Right_XOR()^Right_B(); }
+static inline bool Right_A()   { return (Right_XOR()^Right_B()); }
 
 static inline bool Left_XOR() { return bit_is_set(PINB,PB4); } // (Port B Input Pins Address, PCINT4 <- Sec. 10.4.4)
 static inline bool Left_B()   { return bit_is_set(PINE,PE2); } // (Port E Input Pins Address, PE2 (HWB) <- Sec. 10.4.13)
-static inline bool Left_A()   { return Left_XOR()^Left_B; }
+static inline bool Left_A()   { return (Left_XOR()^Left_B()); }
 /**
  * Function Encoders_Init initializes the encoders, sets up the pin change interrupts, and zeros the initial encoder
  * counts.
@@ -70,11 +70,16 @@ void Encoders_Init()
     // Set PE6 & PF0 pins as input with pull-up resistor deactivated (0=deactivated, 1=activated) (Sec. 10.2.1)
     PORTE &= (1 << PORTE6);
     PORTF &= (1 << PORTF0);
-    // Enable interrupt trigger request for INT6 (Sec. 11.1.3)
-    EMISK |= (1 << INT6);
+    
+    // Need to clear Interrupt Enable bit of EIMSK register when setting ISC161/ISC160 (Note in Sec 11.1.2)
+    EIMSK &= (1 << INT6);
+
     // Enable external interrupt on any logical change of INT6 (Sec. 11.1.2)
     EICRB |= (1 << ISC60);
-    ECIRB &= (1 << ISC61);
+    //EICRB &= (1 << ISC61);
+
+    // Enable interrupt trigger request for INT6 (Sec. 11.1.3)
+    EIMSK |= (1 << INT6);
 }
 
 
@@ -89,9 +94,10 @@ int32_t Counts_Left()
     // and re-enable interrupts to prevent this from corrupting your read/write.
     
     // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON)) (Sec. 14.2)
-    SREG_copy = SREG;
+    char SREG_copy = SREG;
         // Disable global interrupts
-        __disable_interrupt();
+        // __disable_interrupt();
+        cli();
         // store left encoder counts
         int32_t L_Count = _left_counts;
     // Restore interrupt settings
@@ -111,9 +117,10 @@ int32_t Counts_Right()
     // and re-enable interrupts to prevent this from corrupting your read/write.
 
     // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON) (Sec. 14.2)
-    SREG_copy = SREG;
+    char SREG_copy = SREG;
         // Disable global interrupts
-        __disable_interrupt();
+        // __disable_interrupt();
+        cli();
         // store left encoder counts
         int32_t R_Count = _right_counts;
     // Restore interrupt settings
@@ -131,7 +138,8 @@ float Rad_Left()
     // Store counts per revolution (Sec. 3.4 of Zumo 32U4 datasheet)
     float CPR = 909.7;
     // Convert to radians and return value
-    return (float) Counts_Left * (2 * 3.14)/CPR;
+    float Rad_Left = Counts_Left() * ((2 * 3.14159265359)/CPR);
+    return Rad_Left;
 }
 
 /**
@@ -143,7 +151,8 @@ float Rad_Right()
     // Store counts per revolution (Sec. 3.4 of Zumo 32U4 datasheet)
     float CPR = 909.7;
     // Convert to radians and return value
-    return (float) Counts_Right * (2 * 3.14)/CPR;
+    float Rad_Right = Counts_Right() * ((2 * 3.14159265359)/CPR);
+    return Rad_Right;
 }
 
 /**
@@ -155,7 +164,7 @@ float Rad_Right()
 ISR(PCINT0_vect)
 {
     // Check to see if movement has happened on left side
-    if(Left_XOR() != _last_left_A()){
+    if(Left_XOR() != _last_left_A){
         // Get counts on left (see Lecture 14 class notes)
         _left_counts += (Left_A() ^ _last_left_B) - (_last_left_A ^ Left_B());
 
@@ -178,14 +187,14 @@ ISR(PCINT0_vect)
 ISR(INT6_vect)
 {
     // Check to see if movement has happened on right side
-    if(Right_XOR() != _last_right_A()){
+    if(Right_XOR() != _last_right_A){
         // Get counts on right (see Lecture 14 class notes)
-        _right_counts += (Right_A() ^ _last_right_B) - (_last_right_A ^ Right_A());
+        _right_counts += (Right_A() ^ _last_right_B) - (_last_right_A ^ Right_B());
 
         // Update previous values for left encoder tracking
-        _last_right_A   = right_A();
-        _last_right_B   = right_B();
-        _last_right_XOR = right_XOR();
+        _last_right_A   = Right_A();
+        _last_right_B   = Right_B();
+        //_last_right_XOR = Right_XOR();
         
         return;
     }

@@ -25,8 +25,8 @@ void Battery_Monitor_Init()
     ADMUX |= (1 << REFS0);
 
     // Enable ADC6 as input (Sec.24.9.1)
-    ADUMUX |= (1 << MUX2);
-    ADUMUX |= (1 << MUX1);
+    ADMUX |= (1 << MUX2);
+    ADMUX |= (1 << MUX1);
 }
 
 /**
@@ -38,18 +38,21 @@ float Battery_Voltage()
     union { struct {uint8_t LSB; uint8_t MSB; } split; uint16_t value;} data;
     
     // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON) (Sec. 14.2)
-    SREG_copy = SREG;
+    char SREG_copy = SREG;
         // Disable global interrupts
-        __disable_interrupt();
+        // __disable_interrupt();
+        cli();
         // Start ADC conversion (resets itself to 0 after conversion complete) (Sec. 24.9.2)
         ADCSRA |= (1 << ADSC);
         
-        while(ADSC){
-            // Save ADC Low byte into union stuct (Sec. 24.9.3)
+        while(ADCSRA & (1<<ADSC)){
+            
+        }
+
+        // Save ADC Low byte into union stuct (Sec. 24.9.3)
             data.split.LSB = ADCL;
             // Save ADC high byte into union struct
             data.split.MSB = ADCH;
-        }
     // Restore interrupt settings
     SREG = SREG_copy;
 

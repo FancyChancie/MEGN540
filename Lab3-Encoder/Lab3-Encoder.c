@@ -35,6 +35,12 @@
 #include "../c_lib/Battery_Monitor.h"
 #include "../c_lib/Filter.h"
 
+void Debug()
+{
+    char debug[5] = "debug";
+    usb_send_msg("cc",'!', &debug, sizeof(debug)); // send response
+}
+
 /** 
  * Function to re/initialize states
  */
@@ -59,7 +65,7 @@ int main(void)
     // Tracking variable for mf_loop_timer
     bool firstLoop = true;
     bool firstLoopV = true;
-
+    
     // Variable for storing user command
     char command;
     // Build a meaningful structure for storing data about timing
@@ -67,11 +73,11 @@ int main(void)
     // Build a meaningful structure for storing low battery message
     struct __attribute__((__packed__)) { char let[7]; float volt; } msg = {
         .let = {'B','A','T',' ','L','O','W'},
-        .volt = bat_volt
+        //.volt = bat_volt
     };
 
     //// Battery voltage stuff ////
-    // Battery check interval (every seonds)
+    // Battery check interval (every seconds)
     float batUpdateInterval = 0.002;
     // Time structure for getting voltage and filtering at intervals
     Time_t BatVoltageFilter = GetTime();
@@ -82,9 +88,12 @@ int main(void)
     float numerator_coeffs[5]   = {6.238698354847990e-05,2.495479341939196e-04,3.743219012908794e-04,2.495479341939196e-04,6.238698354847990e-05}; // Matlab B values
     float denominator_coeffs[5] = {1,-3.507786207390781,4.640902412686705,-2.742652821120371,0.610534807561223}; // Matlab A values
     // Create instance of filter stucture for battery voltage
-    Filter_Data_t voltage_Filter
+    Filter_Data_t voltage_Filter;
     // Initalize filter (might be good to add an if to the Initalize() call to reinitalize this too, if needed)
-    Filter_Init(&voltage_Filter, &numerator_coeffs, &denominator_coeffs, order);
+    Filter_Init(&voltage_Filter, numerator_coeffs, denominator_coeffs, order);
+    // Variable for saving unfltered & filtered voltage
+    float filtered_voltage   = 0;
+    float unfiltered_voltage = 0;
 
     for (;;){
         // USB_Echo_Task();
@@ -161,19 +170,19 @@ int main(void)
         }
 
         // [State-machine flag] Send encoder counts
-        if(MSG_FLAG_Execute(&mf_encoder_count)){
+        if(MSG_FLAG_Execute(&mf_send_encoder)){
             // Build a meaningful structure to put encoder radians in into.
             struct __attribute__((packed)) { float L_Rad; float R_Rad; } encoderData;
             encoderData.L_Rad = Rad_Left();
             encoderData.R_Rad = Rad_Right();
 
-            // usb_flush_input_buffer();
+            usb_flush_input_buffer();
 
             if(mf_send_encoder.duration <= 0){
                 usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData)); // send response
                 mf_send_encoder.active = false;
             }else if(SecondsSince(&mf_send_encoder.last_trigger_time) >= mf_send_encoder.duration){
-                usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData)); // send response
+                usb_send_msg("cff", 'E', &encoderData, sizeof(encoderData)); // send response
                 mf_send_encoder.last_trigger_time = GetTime();
             }
         }
@@ -181,7 +190,7 @@ int main(void)
         // Battery voltage measurement every 2 ms.
         if(SecondsSince(&BatVoltageFilter) >= batUpdateInterval){
             // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
-            float unfiltered_voltage = Battery_Voltage();
+            unfiltered_voltage = Battery_Voltage();
             // Set time battery voltage was retreived
             BatVoltageFilter = GetTime();
 
@@ -191,24 +200,23 @@ int main(void)
                 firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
             }
             // Get/set filtered voltage value
-            float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+            // filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
+            filtered_voltage = unfiltered_voltage;
 
             // Send warning if battery voltage below minimum voltage
-            if(filtered_voltage >= minBatVoltage){
+            if(filtered_voltage <= minBatVoltage){
                 msg.volt = filtered_voltage;
                 usb_send_msg("c7sf",'!',&msg,sizeof(msg));
             }
         }
         
-
         // [State-machine flag] Send battery voltage
         if(MSG_FLAG_Execute(&mf_send_voltage)){
             if(mf_send_voltage.duration <= 0){
-                usb_send_msg("cf", 'b', filtered_voltage, sizeof(filtered_voltage));
+                usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
                 mf_send_voltage.active = false;
             }else if(SecondsSince(&mf_send_voltage.last_trigger_time) >= mf_send_voltage.duration){
-                float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
-                usb_send_msg("cf", 'b', filtered_voltage, sizeof(filtered_voltage));
+                usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
                 mf_send_voltage.last_trigger_time = GetTime();
             }
             
