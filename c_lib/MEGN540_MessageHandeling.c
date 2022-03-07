@@ -259,6 +259,7 @@ void Message_Handling_Task()
                     mf_send_encoder.last_trigger_time = GetTime();
                     mf_send_encoder.duration = f/1000.0;
                     mf_send_encoder.command = c;
+                }
             }
             break;
         case 'b':
