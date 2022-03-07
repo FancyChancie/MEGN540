@@ -239,9 +239,10 @@ void Message_Handling_Task()
             // case 'e' returns the left and right encoder values [in radians]
             if(usb_msg_length() >= MEGN540_Message_Len('e')){
                 // then process your e...
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
+                char c = usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
                      
                 mf_send_encoder.active = true;
+                mf_send_encoder.command = c;
             }
             break;
         case 'E':
@@ -250,14 +251,17 @@ void Message_Handling_Task()
             if(usb_msg_length() >= MEGN540_Message_Len('E')){
                 // then process your E...
                 char c = usb_msg_get();
-                float f = usb_msg_get();
+                
+                struct __attribute__((__packed__)) { float f; } data;
+
+                usb_msg_read_into( &data, sizeof(data) );
                      
-                if(f <= 0){   // cancel request without response
+                if(data.f <= 0){   // cancel request without response
                     MSG_FLAG_Init(&mf_send_encoder);
                 }else {   // send time every 'duration' milliseconds
                     mf_send_encoder.active = true;
                     mf_send_encoder.last_trigger_time = GetTime();
-                    mf_send_encoder.duration = f/1000.0;
+                    mf_send_encoder.duration = data.f/1000.0;
                     mf_send_encoder.command = c;
                 }
             }
@@ -266,9 +270,10 @@ void Message_Handling_Task()
             // case 'b' returns the current battery voltage level
             if(usb_msg_length() >= MEGN540_Message_Len('b')){
                 // then process your b...
-                usb_msg_get(); // removes the first character from the received buffer, we already know it was a b so no need to save it as a variable
+                char c = usb_msg_get(); // removes the first character from the received buffer, we already know it was a b so no need to save it as a variable
                      
                 mf_send_voltage.active = true;
+                mf_send_voltage.command = c;
             }
             break;
         case 'B':
@@ -277,14 +282,17 @@ void Message_Handling_Task()
             if(usb_msg_length() >= MEGN540_Message_Len('B')){
                 // then process your B...
                 char c = usb_msg_get();
-                float f = usb_msg_get();
+                
+                struct __attribute__((__packed__)) { float f; } data;
+
+                usb_msg_read_into( &data, sizeof(data) );
                      
-                if(f <= 0){   // cancel request without response
+                if(data.f <= 0){   // cancel request without response
                     MSG_FLAG_Init(&mf_send_voltage);
                 }else {   // send time every 'duration' seconds
                     mf_send_voltage.active = true;
                     mf_send_voltage.last_trigger_time = GetTime();
-                    mf_send_voltage.duration = f;
+                    mf_send_voltage.duration = data.f;
                     mf_send_voltage.command = c;
             }
             }
