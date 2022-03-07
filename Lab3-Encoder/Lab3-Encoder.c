@@ -176,13 +176,13 @@ int main(void)
             encoderData.L_Rad = Rad_Left();
             encoderData.R_Rad = Rad_Right();
 
-            // usb_flush_input_buffer();
+            usb_flush_input_buffer();
 
             if(mf_send_encoder.duration <= 0){
                 usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData)); // send response
                 mf_send_encoder.active = false;
             }else if(SecondsSince(&mf_send_encoder.last_trigger_time) >= mf_send_encoder.duration){
-                usb_send_msg("cff", 'e', &encoderData, sizeof(encoderData)); // send response
+                usb_send_msg("cff", 'E', &encoderData, sizeof(encoderData)); // send response
                 mf_send_encoder.last_trigger_time = GetTime();
             }
         }
@@ -216,7 +216,7 @@ int main(void)
                 mf_send_voltage.active = false;
             }else if(SecondsSince(&mf_send_voltage.last_trigger_time) >= mf_send_voltage.duration){
                 float filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
-                usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
+                usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
                 mf_send_voltage.last_trigger_time = GetTime();
             }
             
