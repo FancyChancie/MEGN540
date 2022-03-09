@@ -3,13 +3,15 @@
 /*
 NOT SURE WHAT TO DO HERE!!!!
 */
-static const float BITS_TO_BATTERY_VOLTS = 1023;
+static const float BITS_TO_BATTERY_VOLTS = 5.0/1023.0;
 
 /**
  * Function Battery_Monitor_Init initializes the Battery Monitor to record the current battery voltages.
  */
 void Battery_Monitor_Init()
 {
+    // Disable digital inputs
+    DIDR0 = 0;
     //// VBAT pin PF6/ADC6 (aka A1) ////
     // Enable ADC (Sec. 24.9.2)
     ADCSRA |= (1 << ADEN);
@@ -21,12 +23,12 @@ void Battery_Monitor_Init()
     ADCSRA |= (1 << ADPS0);
 
     // Set internal 2.56V reference with external capacitor on AREF pin (Sec.24.9.1)
-    ADMUX |= (1 << REFS1);
+    ADMUX |= (0 << REFS1);
     ADMUX |= (1 << REFS0);
 
+    ADMUX &= ~(1 << ADLAR);
+
     // Enable ADC6 as input (Sec.24.9.1)
-    ADMUX |= (1 << MUX2);
-    ADMUX |= (1 << MUX1);
 }
 
 /**
@@ -36,6 +38,10 @@ float Battery_Voltage()
 {
     // A Union to assist with reading the LSB and MSB in the 16 bit register
     union { struct {uint8_t LSB; uint8_t MSB; } split; uint16_t value;} data;
+
+    // Needs to be set each time
+    ADMUX |= (1 << MUX2);
+    ADMUX |= (1 << MUX1);
     
     // Store interrupt settings (this is like ATOMIC_BLOCK(ATOMIC_FORCEON) (Sec. 14.2)
     char SREG_copy = SREG;

@@ -83,7 +83,7 @@ int main(void)
     Time_t BatVoltageFilter = GetTime();
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.2 * 4;
-    // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz, sampling = 125000Hz, order 4)
+    // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz (15), sampling = 125000Hz (200), order 4)
     int   order = 4;
     float numerator_coeffs[5]   = {6.238698354847990e-05,2.495479341939196e-04,3.743219012908794e-04,2.495479341939196e-04,6.238698354847990e-05}; // Matlab B values
     float denominator_coeffs[5] = {1,-3.507786207390781,4.640902412686705,-2.742652821120371,0.610534807561223}; // Matlab A values
@@ -200,13 +200,12 @@ int main(void)
                 firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
             }
             // Get/set filtered voltage value
-            // filtered_voltage = Filter_Value(&voltage_Filter,unfiltered_voltage);
-            filtered_voltage = unfiltered_voltage;
+            filtered_voltage = unfiltered_voltage; //Filter_Value(&voltage_Filter,unfiltered_voltage);
 
             // Send warning if battery voltage below minimum voltage
             if(filtered_voltage <= minBatVoltage){
                 msg.volt = filtered_voltage;
-                usb_send_msg("c7sf",'!',&msg,sizeof(msg));
+                // usb_send_msg("c7sf",'!',&msg,sizeof(msg));
             }
         }
         
