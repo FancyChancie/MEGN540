@@ -38,7 +38,7 @@
  *
  * For motor control we will want to use either of the phase-corrected PWM output types.  Because OC1A/B will be used to
  * send the PWM to the motor driver chip, we'll need to set the PWM frequency (TOP) through the ICR1 register, this
- * effectively sets the max PWM value, which can be a uint16 thing.  Thee  DRV8838 motor driver circuit is rated for
+ * effectively sets the max PWM value, which can be a uint16 thing. The DRV8838 motor driver circuit is rated for
  * a PWM signal of up to 250kHz, you may want to experiment with a few different values, but start with a 20kHz base
  * frequency (Note that, humans can hear up-to about 20kHz, so a 10kHz PWM frequency might be audible).
  *
@@ -47,8 +47,7 @@
  *
  * To Disable or enable the car's PWM functionality use table 14-3 to identify how to disconnect or connect the OC1A/B
  * output pin changes.
- *
- */
+ **/
 #ifndef _LAB4_MOTOR_PWM_H
 #define _LAB4_MOTOR_PWM_H
 
@@ -56,7 +55,6 @@
 #include <avr/io.h>        // For pin input/output access
 #include <ctype.h>         // For int32_t type
 #include <stdbool.h>       // For bool
-
 
 /**
  * Function MotorPWM_Init initializes the motor PWM on Timer 1 for PWM based voltage control of the motors.
