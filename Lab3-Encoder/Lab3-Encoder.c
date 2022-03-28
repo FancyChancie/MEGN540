@@ -200,11 +200,13 @@ int main(void)
                 firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
             }
             // Get/set filtered voltage value
-            filtered_voltage = unfiltered_voltage; //Filter_Value(&voltage_Filter,unfiltered_voltage);
+            // filtered_voltage = unfiltered_voltage;
+            filtered_voltage = 2.0 * Filter_Value(&voltage_Filter,unfiltered_voltage);
 
             // Send warning if battery voltage below minimum voltage
             if(filtered_voltage <= minBatVoltage){
                 msg.volt = filtered_voltage;
+                usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
                 // usb_send_msg("c7sf",'!',&msg,sizeof(msg));
             }
         }
