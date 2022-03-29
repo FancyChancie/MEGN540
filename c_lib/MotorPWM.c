@@ -91,7 +91,6 @@ void Motor_PWM_Right( int16_t pwm )
         }else{
             OCR1A = pwm;
         }
-        
     // Restore interrupt settings
     SREG = SREG_copy;
 }
@@ -114,7 +113,7 @@ int16_t Get_Motor_PWM_Left()
 
     // return (pwm_val/ICR1)*100;
     // Return duty cycle as percent
-    return (OCR1B/ICR1) * 100;
+    return (OCR1B/ICR1) * 100.0;
 }
 
 /**
@@ -135,7 +134,7 @@ int16_t Get_Motor_PWM_Right()
 
     // return (pwm_val/ICR1)*100;
     // Return duty cycle as percent
-    return (OCR1A/ICR1) * 100;
+    return (OCR1A/ICR1) * 100.0;
 }
 
 /**
