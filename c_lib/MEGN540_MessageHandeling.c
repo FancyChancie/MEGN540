@@ -301,7 +301,14 @@ void Message_Handling_Task()
             // case 'p' sets the PWM command for the left (1st) and right (2nd) side with the sign indicating direction (if power is in acceptable range).
             if(usb_msg_length() >= MEGN540_Message_Len('p')){
                 // then process your p...
+                char c = usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
+		        
+                // Store left & right PWM values 
+		        usb_msg_read_into(&PWM_data.left_PWM,  sizeof(PWM_data.left_PWM));
+		        usb_msg_read_into(&PWM_data.right_PWM, sizeof(PWM_data.right_PWM));
+		        PWM_data.timed = false;
 
+		        mf_set_PWM.active = true;
             }
             break;
         case 'P':
@@ -309,7 +316,16 @@ void Message_Handling_Task()
             // The following float value provides the duration (in ms) to have the PWM at the specified value, then return to 0 PWM (stopped) once that time duration is reached.
             if(usb_msg_length() >= MEGN540_Message_Len('P')){
                 // then process your P...
+                char c = usb_msg_get(); // removes the first character from the received buffer, we already know it was a e so no need to save it as a variable
+		        
+                // Store left & right PWM values
+		        usb_msg_read_into(&PWM_data.left_PWM,  sizeof(PWM_data.left_PWM));
+		        usb_msg_read_into(&PWM_data.right_PWM, sizeof(PWM_data.right_PWM));
+		        usb_msg_read_into(&PWM_data.duration,  sizeof(PWM_data.duration));
+		        PWM_data.timed = true;
 
+		        mf_set_PWM.active = true;
+		        mf_set_PWM.duration = PWM_data.duration/1000;   // Divide by 1000 to convert ms to sec
             }
             break;
         case 's':

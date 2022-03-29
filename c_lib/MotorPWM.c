@@ -8,8 +8,6 @@
  */
 void Motor_PWM_Init( uint16_t MAX_PWM )
 {
-    // Initialize TCNT1 register (Sec. 14.9)
-    TCNT1 = 0;
     // Enable OC1A & OCA1B as outputs (left and right motors)
     // Clear on Timer1 compare match (Channel A & B) (Sec. 14.10.1)
     TCCR1A &= (1 << COM1A1);
@@ -21,7 +19,7 @@ void Motor_PWM_Init( uint16_t MAX_PWM )
     // Enable clock source with no prescaler
     TCCR1B &= (1 << CS10);
     // Disable motors
-    Motor_PWM_Enable(0)
+    Motor_PWM_Enable(0);
     // Set motor max PWM
     Set_MAX_Motor_PWM(MAX_PWM);
     // As an extra safety set motor PWMs to zero
