@@ -49,6 +49,8 @@ MSG_FLAG_t mf_send_time;         ///<-- Indicates if the system should send the 
 MSG_FLAG_t mf_time_out;          ///<-- Indicates if the system has timed out during USB read.
 MSG_FLAG_t mf_send_encoder;      ///<-- Indicates if the system should report encoder counts.
 MSG_FLAG_t mf_send_voltage;      ///<-- Indicates if the system should report battery voltage.
+MSG_FLAG_t mf_set_PWM; 		     ///<-- Indicates if the system should set the PWM.
+MSG_FLAG_t mf_stop_PWM; 	     ///<-- Indicates if the system should stop PWM and disable the motor.
 
 /**
  * Function MSG_FLAG_Execute indicates if the action associated with the message flag should be executed

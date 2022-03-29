@@ -59,7 +59,7 @@ int main(void)
     Initialize();
 
     // Tracking variable for mf_loop_timer
-    bool firstLoop = true;
+    bool firstLoop  = true;
     bool firstLoopV = true;
     
     // Variable for storing user command
@@ -78,7 +78,7 @@ int main(void)
     // Time structure for getting voltage and filtering at intervals
     Time_t BatVoltageFilter = GetTime();
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
-    float minBatVoltage = 1.2 * 4;
+    float minBatVoltage = 1.1875 * 4;
     // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz (15), sampling = 125000Hz (200), order 4)
     int   order = 4;
     float numerator_coeffs[5]   = {0.00178260999192539,0.00713043996770157,0.0106956599515524,0.00713043996770157,0.00178260999192539}; // Matlab B values

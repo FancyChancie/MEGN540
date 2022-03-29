@@ -47,9 +47,7 @@ static inline void MSG_FLAG_Init(MSG_FLAG_t* p_flag)
  */
 bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag)
 {
-    // What is the logic to indicate an action should be executed?
-    
-    // if active and duration is less than (or equal to) the last trigger time, return true,
+    // If active and duration is less than (or equal to) the last trigger time, return true,
     // otherwise, return false
     return p_flag->active && (p_flag->duration <= SecondsSince(&p_flag->last_trigger_time));
 }
@@ -69,6 +67,8 @@ void Message_Handling_Init()
     MSG_FLAG_Init(&mf_time_out);
     MSG_FLAG_Init(&mf_send_encoder);
     MSG_FLAG_Init(&mf_send_voltage);
+    MSG_FLAG_Init(&mf_set_PWM);
+    MSG_FLAG_Init(&mf_stop_PWM);
 }
 
 /**
@@ -294,7 +294,51 @@ void Message_Handling_Task()
                     mf_send_voltage.last_trigger_time = GetTime();
                     mf_send_voltage.duration = data.f;
                     mf_send_voltage.command = c;
+                }
             }
+            break;
+        case 'p':
+            // case 'p' sets the PWM command for the left (1st) and right (2nd) side with the sign indicating direction (if power is in acceptable range).
+            if(usb_msg_length() >= MEGN540_Message_Len('p')){
+                // then process your p...
+
+            }
+            break;
+        case 'P':
+            // case 'P' sets the PWM command for the left (1st) and right (2nd) side with the sign indicating direction (if power is in acceptable range).
+            // The following float value provides the duration (in ms) to have the PWM at the specified value, then return to 0 PWM (stopped) once that time duration is reached.
+            if(usb_msg_length() >= MEGN540_Message_Len('P')){
+                // then process your P...
+
+            }
+            break;
+        case 's':
+            // case 's' stops PWM and disable motor system
+            if(usb_msg_length() >= MEGN540_Message_Len('s')){
+                // then process your s...
+
+            }
+            break;
+        case 'S':
+            // case 'S' stops PWM and disable motor system
+            if(usb_msg_length() >= MEGN540_Message_Len('S')){
+                // then process your S...
+
+            }
+            break;
+        case 'q':
+            // case 'q' sends system identification data back to host.
+            if(usb_msg_length() >= MEGN540_Message_Len('q')){
+                // then process your q...
+
+            }
+            break;
+        case 'Q':
+            // case 'Q' sends the system identification information back to the host every X ms (as specified in the second float).
+            // If this float is zero or negative, then the repeat send request is canceled.
+            if(usb_msg_length() >= MEGN540_Message_Len('Q')){
+                // then process your Q...
+
             }
             break;
         case '~':
