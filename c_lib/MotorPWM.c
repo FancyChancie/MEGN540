@@ -34,7 +34,7 @@ void Motor_PWM_Init( uint16_t MAX_PWM )
 void Motor_PWM_Enable( bool enable )
 {
     // Set PB5 (right motor speed) and PB6 (left motor speed) (Sec. 3.3 of Zumo 32U4)
-    if(ebable){
+    if(enable){
         // Enable drivers by setting data direction (See Sec. 14.10.2)
         DDRB |= (1 << DDB5);
         DDRB |= (1 << DDB6);
