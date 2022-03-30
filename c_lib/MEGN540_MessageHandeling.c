@@ -301,7 +301,7 @@ void Message_Handling_Task()
             // case 'p' sets the PWM command for the left (1st) and right (2nd) side with the sign indicating direction (if power is in acceptable range).
             if(usb_msg_length() >= MEGN540_Message_Len('p')){
                 // then process your p...
-                char c = usb_msg_get(); // removes the first character from the received buffer, we already know it was a p so no need to save it as a variable
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a p so no need to save it as a variable
 		        
                 struct __attribute__((__packed__)) { int16_t left_PWM; int16_t right_PWM; } data;
                 // Read PWM data from buffer
@@ -320,7 +320,7 @@ void Message_Handling_Task()
             // The following float value provides the duration (in ms) to have the PWM at the specified value, then return to 0 PWM (stopped) once that time duration is reached.
             if(usb_msg_length() >= MEGN540_Message_Len('P')){
                 // then process your P...
-                char c = usb_msg_get(); // removes the first character from the received buffer, we already know it was a P so no need to save it as a variable
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a P so no need to save it as a variable
 		        
                 struct __attribute__((__packed__)) { int16_t left_PWM; int16_t right_PWM; float duration} data;
 
@@ -353,7 +353,10 @@ void Message_Handling_Task()
             // case 'q' sends system identification data back to host.
             if(usb_msg_length() >= MEGN540_Message_Len('q')){
                 // then process your q...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a q so no need to save it as a variable
 
+                mf_send_sys_info.active = true;
+                mf_send_sys_info.duration = -1;
             }
             break;
         case 'Q':
@@ -361,7 +364,17 @@ void Message_Handling_Task()
             // If this float is zero or negative, then the repeat send request is canceled.
             if(usb_msg_length() >= MEGN540_Message_Len('Q')){
                 // then process your Q...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a Q so no need to save it as a variable
 
+                mf_send_sys_info.active = true;
+                float duration;
+                usb_msg_read_into(&duration, sizeof(duration));
+
+                if(duration <= 0){
+                    mf_send_sys_info.duration = -1;
+                }else{
+                    mf_send_sys_info.duration = duration;
+                }
             }
             break;
         case '~':
