@@ -30,6 +30,7 @@
 #include "../c_lib/Encoder.h"
 #include "../c_lib/Battery_Monitor.h"
 #include "../c_lib/Filter.h"
+#include "../c_lib/MotorPWM.h"
 
 void Debug()
 {
@@ -48,6 +49,7 @@ void Initialize()
     SetupTimer0();           // Initialize timer zero functionality
     Encoders_Init();         // Initalize encoders
     Battery_Monitor_Init();  // Initalize battery monitor
+    Motor_PWM_Init(400);     // Initialize motors at TOP PWM of 400
     usb_flush_input_buffer();// Flush buffer
 }
 
@@ -66,13 +68,18 @@ int main(void)
     char command;
     // Build a meaningful structure for storing data about timing
     struct __attribute__((__packed__)) { uint8_t B; float f; } timeData;
-    // Build a meaningful structure for storing low battery message
-    struct __attribute__((__packed__)) { char let[7]; float volt; } msg = {
+
+
+    //// Battery voltage stuff ////
+    // Low battery message
+    struct __attribute__((__packed__)) { char let[7]; float volt; } low_batt_msg = {
         .let = {'B','A','T',' ','L','O','W'},
         //.volt = bat_volt
     };
-
-    //// Battery voltage stuff ////
+    // Power off message
+    struct __attribute__((__packed__)) { char let[9]; } pwr_off_msg = {
+        .let = {'P','O','W','E','R',' ','O','F','F'},
+    };
     // Battery check interval (every seconds)
     float batUpdateInterval = 0.002;
     // Time structure for getting voltage and filtering at intervals
@@ -203,7 +210,7 @@ int main(void)
             if(filtered_voltage <= minBatVoltage){
                 msg.volt = filtered_voltage;
                 usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
-                // usb_send_msg("c7sf",'!',&msg,sizeof(msg));
+                // usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
             }
         }
         
