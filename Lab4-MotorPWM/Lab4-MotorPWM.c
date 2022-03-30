@@ -83,11 +83,11 @@ int main(void)
     // Battery check interval (every seconds)
     float batUpdateInterval = 0.002;
     // Time structure for getting voltage and filtering at intervals
-    Time_t BatVoltageFilter = GetTime();
+    Time_t batVoltageFilter = GetTime();
     // Time structure for sending battery/power warnings every X seconds
-    Time_t BattPwrWarnTime = GetTime();
+    Time_t battPwrWarnTimer = GetTime();
     // Send warning every X seconds rather than constantly
-    float BattPwrWarnInterval = 10;
+    float battPwrWarnInterval = 10;
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.1875 * 4;
     // Lower voltage threshold to warn if power is off
@@ -100,7 +100,7 @@ int main(void)
     Filter_Data_t voltage_Filter;
     // Initalize filter (might be good to add an if to the Initalize() call to reinitalize this too, if needed)
     Filter_Init(&voltage_Filter, numerator_coeffs, denominator_coeffs, order);
-    // Variable for saving unfltered & filtered voltage
+    // Initialize variables for saving unfltered & filtered voltage
     float filtered_voltage   = 0;
     float unfiltered_voltage = 0;
 
@@ -197,11 +197,11 @@ int main(void)
         }
 
         // Battery voltage measurement every 2 ms.
-        if(SecondsSince(&BatVoltageFilter) >= batUpdateInterval){
+        if(SecondsSince(&batVoltageFilter) >= batUpdateInterval){
             // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
             unfiltered_voltage = Battery_Voltage();
             // Set time battery voltage was retreived
-            BatVoltageFilter = GetTime();
+            batVoltageFilter = GetTime();
 
             if(firstLoopV){
                 // Initialize filter with unfiltered_voltage values
@@ -212,13 +212,15 @@ int main(void)
             // filtered_voltage = unfiltered_voltage;
             filtered_voltage = 2.0 * Filter_Value(&voltage_Filter,unfiltered_voltage);
 
-            // Send warning only every BattPwrWarnInterval seconds
-            if(SecondsSince(&BattPwrWarnTime) >= BattPwrWarnInterval){
+            // Send warning only every battPwrWarnInterval seconds
+            if(SecondsSince(&battPwrWarnTimer) >= battPwrWarnInterval){
                 // Send warning if battery voltage below minimum voltage but power is NOT off
                 if(filtered_voltage <= minBatVoltage && filtered_voltage > offBattVoltage){
                     msg.volt = filtered_voltage;
                     // usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
                     usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
+                    // Disable motors if battery too low
+                    Motor_PWM_Enable(false);
                 }
                 // Send warning of power IS off
                 if(filtered_voltage <= offBattVoltage){
@@ -237,5 +239,12 @@ int main(void)
                 mf_send_voltage.last_trigger_time = GetTime();
             }
         }
+
+        // // [State-machine flag] PWM command
+        // if(MSG_FLAG_Execute(&mf_set_PWM)){
+        //     mf_set_PWM.last_trigger_time = GetTime();
+
+        //     if(Filter_Last_Output)
+        // }
     }
 }
