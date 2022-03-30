@@ -1,6 +1,7 @@
 #include "MotorPWM.h"
 
 static bool motor_enabled = false;
+
 /**
  * Function MotorPWM_Init initializes the motor PWM on Timer 1 for PWM based voltage control of the motors.
  * The Motor PWM system shall initialize in the disabled state for safety reasons. You should specifically enable
@@ -8,7 +9,9 @@ static bool motor_enabled = false;
  * @param [uint16_t] MAX_PWM is the maximum PWM value to use. This controls the PWM frequency.
  */
 void Motor_PWM_Init( uint16_t MAX_PWM ) {
+    // Disable motors by default
     Motor_PWM_Enable(false);
+
     // Set waveform generation mode to 8 to use ICR as TOP value
     TCCR1B |= (1 << WGM13);
     // Enable clock source with no prescaler
@@ -23,22 +26,22 @@ void Motor_PWM_Init( uint16_t MAX_PWM ) {
  * @param [bool] enable (true set enable, false set disable)
  */
 void Motor_PWM_Enable( bool enable ) {
-    if (enable) {
-        // Enable drivers by setting speed (See Sec. 14.10.2)
+    if(enable){
+        // Enable driver pins as output for PWM speed (Sec. 14.10.2)
         DDRB |= (1 << DDB5); 
         DDRB |= (1 << DDB6); 
 
-        // Enable drivers by setting data direction (See Sec. 14.10.2)
+        // Enable driver pins as output for motor direction (Sec. 14.10.2)
         DDRB |= (1 << DDB1); 
         DDRB |= (1 << DDB2); 
 
-        // Clear on Timer1 compare match (Channel A & B) (Sec. 14.10.1)
+        // Set Timer1 to clear on compare match (Channel A & B) (Sec. 14.10.1)
         TCCR1A |= (1 << COM1A1);
         TCCR1A |= (1 << COM1B1);
 
+        // Set motor enabled flag
         motor_enabled = true;
-    }
-    else {
+    }else{
         DDRB &= (0 << DDB5); 
         DDRB &= (0 << DDB6); 
 
@@ -65,6 +68,7 @@ bool Is_Motor_PWM_Enabled() {
  * @return [int32_t] The count number.
  */
 void Motor_PWM_Left( int16_t pwm ) {
+    // (Sec. 14.10.10)
     OCR1BL = ((uint16_t) pwm) & 0xFF;
     OCR1BH = (((uint16_t) pwm) >> 8) & 0xFF;
 }
@@ -74,6 +78,7 @@ void Motor_PWM_Left( int16_t pwm ) {
  * @return [int32_t] The count number.
  */
 void Motor_PWM_Right( int16_t pwm ) {
+    // (Sec. 14.10.9)
     OCR1AL = ((uint16_t) pwm) & 0xFF;
     OCR1AH = (((uint16_t) pwm) >> 8) & 0xFF;
 }
@@ -85,9 +90,7 @@ void Motor_PWM_Right( int16_t pwm ) {
  */
 int16_t Get_Motor_PWM_Left() {
     int16_t duty_cycle;
-
     duty_cycle = (OCR1BH << 8) | OCR1BL;
-
     return duty_cycle;
 }
 
@@ -98,9 +101,7 @@ int16_t Get_Motor_PWM_Left() {
  */
 int16_t Get_Motor_PWM_Right() {
     int16_t duty_cycle;
-
     duty_cycle = (OCR1AH << 8) | OCR1AL;
-
     return duty_cycle;
 }
 
@@ -110,9 +111,7 @@ int16_t Get_Motor_PWM_Right() {
  */
 uint16_t Get_MAX_Motor_PWM() {
     uint16_t max_motor;
-
     max_motor = (ICR1H << 8) | ICR1L;
-
     return max_motor;
 }
 
@@ -122,7 +121,9 @@ uint16_t Get_MAX_Motor_PWM() {
  * atmega32U4 datasheat.
  */
 void Set_MAX_Motor_PWM( uint16_t MAX_PWM ) {
+    // Reset timer1 counter
     TCNT1 = 0;
+    // (Sec. 14.10.15)
     ICR1L = MAX_PWM & 0xFF;
     ICR1H = (MAX_PWM >> 8) & 0xFF;
 }
