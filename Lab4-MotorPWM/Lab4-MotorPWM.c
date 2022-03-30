@@ -241,11 +241,26 @@ int main(void)
             }
         }
 
-        // // [State-machine flag] PWM command
-        // if(MSG_FLAG_Execute(&mf_set_PWM)){
-        //     mf_set_PWM.last_trigger_time = GetTime();
+        // [State-machine flag] Set the motors
+        if(MSG_FLAG_Execute(&mf_set_PWM)){
+            if(mf_set_PWM.duration <= 0){
+                Motor_PWM_Enable(true);
 
-        //     if(Filter_Last_Output)
-        // }
+                Motor_PWM_Left(PWM_data.left_PWM);
+                Motor_PWM_Right(PWM_data.right_PWM);
+
+                mf_set_PWM.active = false;
+            }else if(SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
+                usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
+                mf_set_PWM.last_trigger_time = GetTime();
+            }
+            
+        }
+
+        // [State-machine flag] Stop the motors
+        if(MSG_FLAG_Execute(&mf_stop_PWM)){
+            
+            
+        }
     }
 }
