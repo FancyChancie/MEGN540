@@ -84,8 +84,14 @@ int main(void)
     float batUpdateInterval = 0.002;
     // Time structure for getting voltage and filtering at intervals
     Time_t BatVoltageFilter = GetTime();
+    // Time structure for sending battery/power warnings every X seconds
+    Time_t BattPwrWarnTime = GetTime();
+    // Send warning every X seconds rather than constantly
+    float BattPwrWarnInterval = 10;
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.1875 * 4;
+    // Lower voltage threshold to warn if power is off
+    float offBattVoltage = 0.5;
     // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz (15), sampling = 125000Hz (200), order 4)
     int   order = 4;
     float numerator_coeffs[5]   = {0.00178260999192539,0.00713043996770157,0.0106956599515524,0.00713043996770157,0.00178260999192539}; // Matlab B values
@@ -206,11 +212,18 @@ int main(void)
             // filtered_voltage = unfiltered_voltage;
             filtered_voltage = 2.0 * Filter_Value(&voltage_Filter,unfiltered_voltage);
 
-            // Send warning if battery voltage below minimum voltage
-            if(filtered_voltage <= minBatVoltage){
-                msg.volt = filtered_voltage;
-                usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
-                // usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
+            // Send warning only every BattPwrWarnInterval seconds
+            if(SecondsSince(&BattPwrWarnTime) >= BattPwrWarnInterval){
+                // Send warning if battery voltage below minimum voltage but power is NOT off
+                if(filtered_voltage <= minBatVoltage && filtered_voltage > offBattVoltage){
+                    msg.volt = filtered_voltage;
+                    // usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
+                    usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
+                }
+                // Send warning of power IS off
+                if(filtered_voltage <= offBattVoltage){
+                    usb_send_msg("c9s",'!',&pwr_off_msg,sizeof(pwr_off_msg));
+                }
             }
         }
         
@@ -223,7 +236,6 @@ int main(void)
                 usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
                 mf_send_voltage.last_trigger_time = GetTime();
             }
-            
         }
     }
 }
