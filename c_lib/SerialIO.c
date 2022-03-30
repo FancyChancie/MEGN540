@@ -289,20 +289,37 @@ void usb_write_next_byte()
 	Endpoint_SelectEndpoint(CDC_TX_EPADDR);
 
     /* If the selected IN endpoint IS ready for a new packet to be sent AND the send buffer has data*/
+    // if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer) != 0){
+    //     // While there IS data in usb_send_buffer, write data
+    //     while(rb_length_C(&_usb_send_buffer) != 0){
+    //         // Pop off front of ring buffer & write
+    //         Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
+    //     }
+    //     // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+    //     Endpoint_ClearIN();
+
+    //     //If there is NOT data in usb_ring_buffer
+    //     if(!rb_length_C(&_usb_send_buffer)){
+    //         // Wait for endpoint to be ready for the next packet of data
+    //         Endpoint_WaitUntilReady();
+    //         // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+    //         Endpoint_ClearIN();
+    //     }
+    // }
     if(Endpoint_IsINReady() && rb_length_C(&_usb_send_buffer) != 0){
-        // While there IS data in usb_send_buffer, write data
-        while(rb_length_C(&_usb_send_buffer) != 0){
-            // Pop off front of ring buffer & write
-            Endpoint_Write_8(rb_pop_front_C(&_usb_send_buffer));
+        uint8_t space_left = CDC_TXRX_EPSIZE;
+        while(space_left && rb_length_C(&_usb_send_buffer)){
+            Endpoint_Write_8( rb_pop_front_C(&_usb_send_buffer) );
+            space_left--;
         }
-        // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+        // If we have no more to send, send a done command to the machine
         Endpoint_ClearIN();
 
-        //If there is NOT data in usb_ring_buffer
-        if(!rb_length_C(&_usb_send_buffer)){
-            // Wait for endpoint to be ready for the next packet of data
+        if(space_left == 0){
+            // Wait until the endpoint is ready for the next packet
             Endpoint_WaitUntilReady();
-            // Send completed message to free up the endpoint for the next packet (prevents continued buffering)
+
+            // Send an empty packet to prevent host buffering
             Endpoint_ClearIN();
         }
     }
@@ -337,11 +354,14 @@ void usb_send_data(void* p_data, uint8_t data_len)
 void usb_send_str(char* p_str)
 {
     // Remember c-srtings are null terminated.
-	uint8_t i = 0;
-	while(p_str[i] != 0){
-		rb_push_back_C(&_usb_send_buffer,p_str[i]);
-		i++;
-	}
+	// uint8_t i = 0;
+	// while(p_str[i] != 0){
+	// 	rb_push_back_C(&_usb_send_buffer,p_str[i]);
+	// 	i++;
+	// }
+    for(uint8_t i = 0; p_str[i] != 0; i++) {
+        rb_push_back_C(&_usb_send_buffer, p_str[i]);
+    }
     // Need to add 0 to the end to keep the Null character
     rb_push_back_C(&_usb_send_buffer,0);
 }
