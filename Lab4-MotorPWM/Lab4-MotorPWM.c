@@ -80,14 +80,14 @@ int main(void)
     struct __attribute__((__packed__)) { char let[9]; } pwr_off_msg = {
         .let = {'P','O','W','E','R',' ','O','F','F'},
     };
-    // Battery check interval (every seconds)
+    // Battery check interval (every X seconds)
     float batUpdateInterval = 0.002;
     // Time structure for getting voltage and filtering at intervals
     Time_t batVoltageFilter = GetTime();
     // Time structure for sending battery/power warnings every X seconds
     Time_t battPwrWarnTimer = GetTime();
     // Send warning every X seconds rather than constantly
-    float battPwrWarnInterval = 10;
+    float battPwrWarnInterval = 3;
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.1875 * 4;
     // Lower voltage threshold to warn if power is off
@@ -208,12 +208,13 @@ int main(void)
                 Filter_SetTo(&voltage_Filter,unfiltered_voltage);
                 firstLoopV = !firstLoopV; // flip boolean after first battery voltage read
             }
-            // Get/set filtered voltage value
-            // filtered_voltage = unfiltered_voltage;
+            // Set filtered voltage value
             filtered_voltage = 2.0 * Filter_Value(&voltage_Filter,unfiltered_voltage);
 
             // Send warning only every battPwrWarnInterval seconds
             if(SecondsSince(&battPwrWarnTimer) >= battPwrWarnInterval){
+                // Reset battery warning timer
+                battPwrWarnTimer = GetTime();
                 // Send warning if battery voltage below minimum voltage but power is NOT off
                 if(filtered_voltage <= minBatVoltage && filtered_voltage > offBattVoltage){
                     msg.volt = filtered_voltage;
