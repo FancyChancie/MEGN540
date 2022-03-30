@@ -217,7 +217,7 @@ int main(void)
                 battPwrWarnTimer = GetTime();
                 // Send warning if battery voltage below minimum voltage but power is NOT off
                 if(filtered_voltage <= minBatVoltage && filtered_voltage > offBattVoltage){
-                    msg.volt = filtered_voltage;
+                    low_batt_msg.volt = filtered_voltage;
                     // usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
                     usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
                     // Disable motors if battery too low
