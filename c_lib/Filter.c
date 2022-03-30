@@ -1,42 +1,4 @@
-/*
-         MEGN540 Mechatronics Lab
-    Copyright (C) Andrew Petruska, 2021.
-       apetruska [at] mines [dot] edu
-          www.mechanical.mines.edu
-*/
-
-/*
-    Copyright (c) 2021 Andrew Petruska at Colorado School of Mines
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
-
-/**
- * Filter.h/c defines the functions necessary to implement a z-transform
- * filter for use both with digital filtering and control. 
- * 
- * This code leverages the Ring_Buffer code developed in the homework. 
- *
- */
-#ifndef _MEGN540_FILTER_H
-#define _MEGN540_FILTER_H
-
-#include "Ring_Buffer.h"
-
-typedef struct { struct Ring_Buffer_F numerator; struct Ring_Buffer_F denominator; struct Ring_Buffer_F out_list; struct Ring_Buffer_F in_list; } Filter_Data_t;
+#include "Filter.h"
 
 /**
  * Function Filter_Init initializes the filter given two float arrays and the order of the filter.  Note that the
@@ -46,8 +8,8 @@ typedef struct { struct Ring_Buffer_F numerator; struct Ring_Buffer_F denominato
  *         i=0..N                    i=1..N
  *
  *  Note a 5-point moving average filter has coefficients:
- *      numerator_coeffs (B's)   = { 1 1 1 1 1 };
- *      denominator_coeffs (A's) = { 5 0 0 0 0 };
+ *      numerator_coeffs   = { 5 0 0 0 0 };
+ *      denominator_coeffs = { 1 1 1 1 1 };
  *      order = 4;
  *
  * @param p_filt pointer to the filter object
@@ -55,7 +17,22 @@ typedef struct { struct Ring_Buffer_F numerator; struct Ring_Buffer_F denominato
  * @param denominator_coeffs The denominator coefficients (A/alpha traditionally)
  * @param order The filter order
  */
-void  Filter_Init ( Filter_Data_t* p_filt, float* numerator_coeffs, float* denominator_coeffs, uint8_t order );
+void  Filter_Init ( Filter_Data_t* p_filt, float* numerator_coeffs, float* denominator_coeffs, uint8_t order )
+{
+    rb_initialize_F(&p_filt->numerator);
+    rb_initialize_F(&p_filt->denominator);
+    rb_initialize_F(&p_filt->out_list);
+    rb_initialize_F(&p_filt->in_list);
+
+    for(int i=0;i<order+1;i++){
+        rb_push_back_F(&p_filt->numerator,numerator_coeffs[i]);
+        rb_push_back_F(&p_filt->in_list,0);
+        rb_push_back_F(&p_filt->denominator,denominator_coeffs[i]);
+        rb_push_back_F(&p_filt->out_list,0);
+    }
+
+	return;
+}
 
 /**
  * Function Filter_ShiftBy shifts the input list and output list to keep the filter in the same frame. This especially
@@ -63,7 +40,18 @@ void  Filter_Init ( Filter_Data_t* p_filt, float* numerator_coeffs, float* denom
  * @param p_filt
  * @param shift_amount
  */
-void  Filter_ShiftBy( Filter_Data_t* p_filt, float shift_amount );
+void  Filter_ShiftBy( Filter_Data_t* p_filt, float shift_amount )
+{
+    for(int i=0;i<rb_length_F(&p_filt->in_list);i++){
+        float valN = rb_get_F(&p_filt->in_list,i);
+        float valD = rb_get_F(&p_filt->out_list,i);
+
+        rb_set_F(&p_filt->in_list,i,valN + shift_amount);
+        rb_set_F(&p_filt->out_list,i,valD + shift_amount);
+    }
+
+    return;
+}
 
 /**
  * Function Filter_SetTo sets the initial values for the input and output lists to a constant defined value. This
@@ -71,7 +59,15 @@ void  Filter_ShiftBy( Filter_Data_t* p_filt, float shift_amount );
  * @param p_filt Pointer to a Filter_Data sturcture
  * @param amount The value to re-initialize the filter to.
  */
-void Filter_SetTo( Filter_Data_t* p_filt, float amount );
+void Filter_SetTo( Filter_Data_t* p_filt, float amount )
+{
+    for(int i=0;i<rb_length_F(&p_filt->in_list);i++){
+        rb_set_F(&p_filt->in_list,i,amount);
+        rb_set_F(&p_filt->out_list,i,amount);
+    }
+
+    return;
+}
 
 /**
  * Function Filter_Value adds a new value to the filter and returns the new output.
@@ -79,13 +75,42 @@ void Filter_SetTo( Filter_Data_t* p_filt, float amount );
  * @param value the new measurement or value
  * @return The newly filtered value
  */
-float Filter_Value( Filter_Data_t* p_filt, float value);
+float Filter_Value( Filter_Data_t* p_filt, float value)
+{
+    float first = 0;
+    float last = 0;
+    float fin = 0;
+
+    float az = rb_get_F(&p_filt->denominator,0);
+
+    rb_push_front_F(&p_filt->in_list,value);
+    rb_pop_back_F(&p_filt->in_list);
+
+    for(int i=0;i<rb_length_F(&p_filt->numerator);i++){
+        float bn = rb_get_F(&p_filt->numerator,i);
+        float in = rb_get_F(&p_filt->in_list,i);
+        first += (bn*in);
+    }
+
+    for(int i=1;i<rb_length_F(&p_filt->denominator);i++){
+        float an = rb_get_F(&p_filt->denominator,i);
+        float out = rb_get_F(&p_filt->out_list,i-1);
+        last += (an*out);
+    }
+
+    fin = (1/az)*(first-last);
+
+    rb_push_front_F(&p_filt->out_list,fin);
+    rb_pop_back_F(&p_filt->out_list);
+
+	return fin;
+}
 
 /**
  * Function Filter_Last_Output returns the most up-to-date filtered value without updating the filter.
  * @return The latest filtered value
  */
-float Filter_Last_Output(  Filter_Data_t* p_filt );
-
-
-#endif
+float Filter_Last_Output( Filter_Data_t* p_filt )
+{
+	return rb_get_F(&p_filt->out_list,0);
+}
