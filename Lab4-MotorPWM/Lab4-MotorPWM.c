@@ -270,7 +270,8 @@ int main(void)
 
             //// STILL NEEDS WORK ////
             }else if(SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
-                usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
+                Motor_PWM_Left(0);
+                Motor_PWM_Left(0);
                 mf_set_PWM.last_trigger_time = GetTime();
             }
         }

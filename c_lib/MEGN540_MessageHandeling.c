@@ -334,6 +334,7 @@ void Message_Handling_Task()
 		        PWM_data.timed     = true;
 
 		        mf_set_PWM.active   = true;
+                mf_set_PWM.last_trigger_time = GetTime();
 		        mf_set_PWM.duration = PWM_data.duration/1000;   // Divide by 1000 to convert ms to sec
             }
             break;
