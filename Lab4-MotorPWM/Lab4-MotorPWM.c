@@ -63,6 +63,7 @@ int main(void)
     // Tracking variable for timers
     bool firstLoop  = true;
     bool firstLoopV = true;
+    bool firstLoopSysData = true;
     
     // Variable for storing user command
     char command;
@@ -268,7 +269,11 @@ int main(void)
 
         // [State-machine flag] Send system information
         if(MSG_FLAG_Execute(&mf_send_sys_info)){
-            systemDataTime.startTime = GetTime();
+            if(firstLoopSysData){
+                systemDataTime.startTime = GetTime();
+                firstLoopSysData = !firstLoopSysData;
+            }
+            
 
             if(mf_send_sys_info.duration <= 0){
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
@@ -280,6 +285,8 @@ int main(void)
                 usb_send_msg("cf4h",'q',&systemData,sizeof(systemData));
                 mf_send_sys_info.active = false;
 
+                firstLoopSysData = !firstLoopSysData;
+                
             }else if(SecondsSince(&systemDataTime.last_trigger_time) >= mf_send_sys_info.duration){
                 systemDataTime.last_trigger_time = GetTime();
 
