@@ -72,7 +72,8 @@ int main(void)
 
     //// Battery voltage stuff ////
     // Low battery message
-    struct __attribute__((__packed__)) { char let[7]; float volt; } low_batt_msg = {.let = {'B','A','T',' ','L','O','W'},.volt = 0.1};
+    // struct __attribute__((__packed__)) { char let[7]; float volt; } low_batt_msg = {.let = {'B','A','T',' ','L','O','W'},.volt = 0.1};
+    struct __attribute__((__packed__)) { char let[7]; } low_batt_msg = {.let = {'B','A','T',' ','L','O','W'}};
     // Power off message
     struct __attribute__((__packed__)) { char let[9]; } pwr_off_msg = {.let = {'P','O','W','E','R',' ','O','F','F'}};
     // Battery check interval (every X seconds)
@@ -220,9 +221,10 @@ int main(void)
                 battPwrWarnTimer = GetTime();
                 // Send warning if battery voltage below minimum voltage but power is NOT off
                 if(filtered_voltage <= minBatVoltage && filtered_voltage > offBattVoltage){
-                    low_batt_msg.volt = filtered_voltage;
-                    usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
+                    // low_batt_msg.volt = filtered_voltage;
+                    //usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
                     // usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
+                    usb_send_msg("c7s",'!',&low_batt_msg,sizeof(low_batt_msg));
                     // Disable motors if battery too low
                     Motor_PWM_Enable(false);
                 }
@@ -246,30 +248,28 @@ int main(void)
 
         // [State-machine flag] Set the motors
         if(MSG_FLAG_Execute(&mf_set_PWM)){
-            if(mf_set_PWM.duration <= 0){
+            if(mf_set_PWM.duration <= 0 || SecondsSince(&mf_set_PWM.last_trigger_time) <= mf_set_PWM.duration){
                 Motor_PWM_Enable(true);
 
                 if(PWM_data.right_PWM < 0){
                     PORTB &= (1 << PB1);
-                }
-                else{
+                }else{
                     PORTB &= ~(1 << PB1);
                 }
 
                 if(PWM_data.left_PWM < 0){
                     PORTB &= (1 << PB2);
-                }
-                else{
+                }else{
                     PORTB &= ~(1 << PB2);
                 }
 
-                Motor_PWM_Left(PWM_data.left_PWM);
-                Motor_PWM_Right(PWM_data.right_PWM);
+                Motor_PWM_Left(abs(PWM_data.left_PWM));
+                Motor_PWM_Right(abs(PWM_data.right_PWM));
 
                 mf_set_PWM.active = false;
+                mf_set_PWM.last_trigger_time = GetTime();
 
-            //// STILL NEEDS WORK ////
-            }else if(SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
+            }else{// if(SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
                 Motor_PWM_Left(0);
                 Motor_PWM_Left(0);
                 mf_set_PWM.last_trigger_time = GetTime();
@@ -290,7 +290,6 @@ int main(void)
                 systemDataTime.startTime = GetTime();
                 firstLoopSysData = !firstLoopSysData;
             }
-            
 
             if(mf_send_sys_info.duration <= 0){
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
