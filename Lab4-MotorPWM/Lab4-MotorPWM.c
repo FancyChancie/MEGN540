@@ -49,7 +49,7 @@ void Initialize()
     SetupTimer0();           // Initialize timer zero functionality
     Encoders_Init();         // Initalize encoders
     Battery_Monitor_Init();  // Initalize battery monitor
-    Motor_PWM_Init(400);     // Initialize motors at TOP PWM of 400
+    Motor_PWM_Init(380);     // Initialize motors at TOP PWM of 400
     usb_flush_input_buffer();// Flush buffer
 }
 
@@ -278,8 +278,9 @@ int main(void)
                 systemData.Encoder_L = Counts_Left();
                 systemData.Encoder_R = Counts_Right();
 
-                usb_send_msg("ch4h",'q',&systemData,sizeof(systemData));
+                usb_send_msg("cf4h",'q',&systemData,sizeof(systemData));
                 mf_send_sys_info.active = false;
+                
             }else if(SecondsSince(&systemDataTime.last_trigger_time) >= mf_send_sys_info.duration){
                 systemDataTime.last_trigger_time = GetTime();
 
@@ -289,7 +290,7 @@ int main(void)
                 systemData.Encoder_L = Counts_Left();
                 systemData.Encoder_R = Counts_Right();
 
-                usb_send_msg("ch4h",'Q',&systemData,sizeof(systemData));
+                usb_send_msg("cf4h",'Q',&systemData,sizeof(systemData));
             }
         }
     }
