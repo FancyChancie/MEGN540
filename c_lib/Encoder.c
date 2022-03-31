@@ -138,7 +138,7 @@ float Rad_Left()
     // Store counts per revolution (Sec. 3.4 of Zumo 32U4 datasheet)
     float CPR = 909.7;
     // Convert to radians and return value
-    float Rad_Left = (float) Counts_Left() * ((3.14159265359 / 6)/CPR);
+    float Rad_Left = (float) Counts_Left() * ((3.14159265359 * 4)/CPR);
     return Rad_Left;
 }
 
@@ -151,7 +151,7 @@ float Rad_Right()
     // Store counts per revolution (Sec. 3.4 of Zumo 32U4 datasheet)
     float CPR = 909.7;
     // Convert to radians and return value
-    float Rad_Right = (float) Counts_Right() * ((3.14159265359 / 6)/CPR);
+    float Rad_Right = (float) Counts_Right() * ((3.14159265359 * 4)/CPR);
     return Rad_Right;
 }
 
