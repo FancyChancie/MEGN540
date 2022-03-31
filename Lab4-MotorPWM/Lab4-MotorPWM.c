@@ -60,7 +60,7 @@ int main(void)
 {
     Initialize();
 
-    // Tracking variable for mf_loop_timer
+    // Tracking variable for timers
     bool firstLoop  = true;
     bool firstLoopV = true;
     
@@ -69,17 +69,11 @@ int main(void)
     // Build a meaningful structure for storing data about timing
     struct __attribute__((__packed__)) { uint8_t B; float f; } timeData;
 
-
     //// Battery voltage stuff ////
     // Low battery message
-    struct __attribute__((__packed__)) { char let[7]; float volt; } low_batt_msg = {
-        .let = {'B','A','T',' ','L','O','W'},
-        //.volt = bat_volt
-    };
+    struct __attribute__((__packed__)) { char let[7]; float volt; } low_batt_msg = {.let = {'B','A','T',' ','L','O','W'},.volt = 0.1};
     // Power off message
-    struct __attribute__((__packed__)) { char let[9]; } pwr_off_msg = {
-        .let = {'P','O','W','E','R',' ','O','F','F'},
-    };
+    struct __attribute__((__packed__)) { char let[9]; } pwr_off_msg = {.let = {'P','O','W','E','R',' ','O','F','F'}};
     // Battery check interval (every X seconds)
     float batUpdateInterval = 0.002;
     // Time structure for getting voltage and filtering at intervals
@@ -103,6 +97,12 @@ int main(void)
     // Initialize variables for saving unfltered & filtered voltage
     float filtered_voltage   = 0;
     float unfiltered_voltage = 0;
+
+    //// System info stuff ////
+    // Build a meaningful structure for storing data about timing for sending system info
+    struct __attribute__((__packed__)) { float interval; Time_t startTime; Time_t last_trigger_time;} systemDataTime;
+    // Build a meaningful structure for storing data about system info
+    struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R; int16_t Encoder_L; int16_t Encoder_R;} systemData;
 
     for (;;){
         // USB_Echo_Task();
@@ -196,7 +196,7 @@ int main(void)
             }
         }
 
-        // Battery voltage measurement every 2 ms.
+        // Battery voltage measurement/monitor every 2 ms.
         if(SecondsSince(&batVoltageFilter) >= batUpdateInterval){
             // Get unfiltered battery voltage to help the filter smooth out quicker than sending it 0 to begin with
             unfiltered_voltage = Battery_Voltage();
@@ -211,15 +211,15 @@ int main(void)
             // Set filtered voltage value
             filtered_voltage = 2.0 * Filter_Value(&voltage_Filter,unfiltered_voltage);
 
-            // Send warning only every battPwrWarnInterval seconds
+            // Send warning only every X seconds
             if(SecondsSince(&battPwrWarnTimer) >= battPwrWarnInterval){
                 // Reset battery warning timer
                 battPwrWarnTimer = GetTime();
                 // Send warning if battery voltage below minimum voltage but power is NOT off
                 if(filtered_voltage <= minBatVoltage && filtered_voltage > offBattVoltage){
                     low_batt_msg.volt = filtered_voltage;
-                    // usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
-                    usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
+                    usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
+                    // usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
                     // Disable motors if battery too low
                     Motor_PWM_Enable(false);
                 }
@@ -250,17 +250,47 @@ int main(void)
                 Motor_PWM_Right(PWM_data.right_PWM);
 
                 mf_set_PWM.active = false;
+
+            //// STILL NEEDS WORK ////
             }else if(SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
                 usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
                 mf_set_PWM.last_trigger_time = GetTime();
             }
-            
         }
 
         // [State-machine flag] Stop the motors
         if(MSG_FLAG_Execute(&mf_stop_PWM)){
-            
-            
+            mf_set_PWM.active = false;
+            Motor_PWM_Left(0);
+            Motor_PWM_Right(0);
+            // Motor_PWM_Enable(false);
+            mf_stop_PWM.active = false;
+        }
+
+        // [State-machine flag] Send system information
+        if(MSG_FLAG_Execute(&mf_send_sys_info)){
+            systemDataTime.startTime = GetTime();
+
+            if(mf_send_sys_info.duration <= 0){
+                systemData.time      = SecondsSince(&systemDataTime.startTime);
+                systemData.PWM_L     = Get_Motor_PWM_Left();
+                systemData.PWM_R     = Get_Motor_PWM_Right();
+                systemData.Encoder_L = Counts_Left();
+                systemData.Encoder_R = Counts_Right();
+
+                usb_send_msg("ch4h",'q',&systemData,sizeof(systemData));
+                mf_send_sys_info.active = false;
+            }else if(SecondsSince(&systemDataTime.last_trigger_time) >= mf_send_sys_info.duration){
+                systemDataTime.last_trigger_time = GetTime();
+
+                systemData.time      = SecondsSince(&systemDataTime.startTime);
+                systemData.PWM_L     = Get_Motor_PWM_Left();
+                systemData.PWM_R     = Get_Motor_PWM_Right();
+                systemData.Encoder_L = Counts_Left();
+                systemData.Encoder_R = Counts_Right();
+
+                usb_send_msg("ch4h",'Q',&systemData,sizeof(systemData));
+            }
         }
     }
 }

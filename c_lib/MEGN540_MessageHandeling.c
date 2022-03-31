@@ -341,12 +341,14 @@ void Message_Handling_Task()
             // case 's' stops PWM and disable motor system
             if(usb_msg_length() >= MEGN540_Message_Len('s')){
                 mf_stop_PWM.active = true;
+                usb_flush_input_buffer();
             }
             break;
         case 'S':
             // case 'S' stops PWM and disable motor system
             if(usb_msg_length() >= MEGN540_Message_Len('S')){
                 mf_stop_PWM.active = true;
+                usb_flush_input_buffer();
             }
             break;
         case 'q':
