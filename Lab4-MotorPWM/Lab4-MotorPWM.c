@@ -260,7 +260,6 @@ int main(void)
 
         // [State-machine flag] Stop the motors
         if(MSG_FLAG_Execute(&mf_stop_PWM)){
-            mf_set_PWM.active = false;
             Motor_PWM_Left(0);
             Motor_PWM_Right(0);
             // Motor_PWM_Enable(false);
@@ -280,7 +279,7 @@ int main(void)
 
                 usb_send_msg("cf4h",'q',&systemData,sizeof(systemData));
                 mf_send_sys_info.active = false;
-                
+
             }else if(SecondsSince(&systemDataTime.last_trigger_time) >= mf_send_sys_info.duration){
                 systemDataTime.last_trigger_time = GetTime();
 
