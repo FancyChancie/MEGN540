@@ -59,7 +59,7 @@
 #include "stdint.h" // for uint8_t type
 
 #define RB_LENGTH_F 8  // must be a power of 2 (max of 256). This is an easy place to adjust max expected length
-#define RB_LENGTH_C 16  // must be a power of 2 (max of 256). This is an easy place to adjust max expected length
+#define RB_LENGTH_C 64  // must be a power of 2 (max of 256). This is an easy place to adjust max expected length
 
 // data structure for a float ring buffer 
 typedef struct Ring_Buffer_F
