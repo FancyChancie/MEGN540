@@ -104,9 +104,9 @@ int main(void)
     // Build a meaningful structure for storing data about timing for sending system info
     struct __attribute__((__packed__)) { float interval; Time_t startTime; Time_t last_trigger_time;} systemDataTime;
     // Build a meaningful structure for storing data about system info
-    // struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R; int16_t Encoder_L; int16_t Encoder_R;} systemData;
+    struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R; int16_t Encoder_L; int16_t Encoder_R;} systemData;
     // struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R;} systemData;
-    struct __attribute__((__packed__)) { float time; int16_t Encoder_L; int16_t Encoder_R;} systemData;
+    // struct __attribute__((__packed__)) { float time; int16_t Encoder_L; int16_t Encoder_R;} systemData;
 
     for (;;){
         // USB_Echo_Task();
@@ -293,12 +293,12 @@ int main(void)
 
             if(mf_send_sys_info.duration <= 0){
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
-                // systemData.PWM_L     = Get_Motor_PWM_Left();
-                // systemData.PWM_R     = Get_Motor_PWM_Right();
+                systemData.PWM_L     = Get_Motor_PWM_Left();
+                systemData.PWM_R     = Get_Motor_PWM_Right();
                 systemData.Encoder_L = Counts_Left();
                 systemData.Encoder_R = Counts_Right();
 
-                usb_send_msg("cf2h",'q',&systemData,sizeof(systemData));
+                usb_send_msg("cf4h",'q',&systemData,sizeof(systemData));
 
                 mf_send_sys_info.active = false;
 
@@ -308,8 +308,8 @@ int main(void)
                 systemDataTime.last_trigger_time = GetTime();
 
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
-                // systemData.PWM_L     = Get_Motor_PWM_Left();
-                // systemData.PWM_R     = Get_Motor_PWM_Right();
+                systemData.PWM_L     = Get_Motor_PWM_Left();
+                systemData.PWM_R     = Get_Motor_PWM_Right();
                 systemData.Encoder_L = Counts_Left();
                 systemData.Encoder_R = Counts_Right();
 
