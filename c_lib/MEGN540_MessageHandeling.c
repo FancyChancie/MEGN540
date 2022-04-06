@@ -380,6 +380,40 @@ void Message_Handling_Task()
                 }
             }
             break;
+        case 'D':
+            // case 'D' specifies the distance to drive (linear followed by angular).
+            if(usb_msg_length() >= MEGN540_Message_Len('d')){
+                // then process your d...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a d so no need to save it as a variable
+
+            }
+            break;    
+        case 'D':
+            // case 'D' specifies the distance to drive (linear followed by angular), terminates after X milliseconds as specified by the third float.
+            // If the third float is negative, the car shall stop.
+            if(usb_msg_length() >= MEGN540_Message_Len('D')){
+                // then process your D...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a D so no need to save it as a variable
+
+            }
+            break;      
+        case 'v':
+            // case 'v' specifies the speed to drive (linear followed by angular).
+            if(usb_msg_length() >= MEGN540_Message_Len('v')){
+                // then process your v...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a v so no need to save it as a variable
+
+            } 
+            break;  
+        case 'V':
+            // case 'V' specifies the speed to drive (linear followed by angular), terminates after X milliseconds as specified by the third float.
+            // If the third float is negative, the car shall stop.
+            if(usb_msg_length() >= MEGN540_Message_Len('V')){
+                // then process your v...
+                usb_msg_get(); // removes the first character from the received buffer, we already know it was a V so no need to save it as a variable
+
+            } 
+            break;             
         case '~':
             if(usb_msg_length() >= MEGN540_Message_Len('~')){
                 // then process your reset by setting the mf_restart flag 
