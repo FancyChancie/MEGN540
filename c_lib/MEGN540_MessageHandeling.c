@@ -69,6 +69,8 @@ void Message_Handling_Init()
     MSG_FLAG_Init(&mf_send_voltage);
     MSG_FLAG_Init(&mf_set_PWM);
     MSG_FLAG_Init(&mf_stop_PWM);
+    MSG_FLAG_Init(&mf_distance_mode);
+    MSG_FLAG_Init(&mf_velocity_mode);
 }
 
 /**
@@ -380,12 +382,18 @@ void Message_Handling_Task()
                 }
             }
             break;
-        case 'D':
-            // case 'D' specifies the distance to drive (linear followed by angular).
+        case 'd':
+            // case 'd' specifies the distance to drive (linear followed by angular).
             if(usb_msg_length() >= MEGN540_Message_Len('d')){
                 // then process your d...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a d so no need to save it as a variable
 
+                mf_distance_mode.active = true;
+                // Build a meaningful structure to put your data in. Here we want two floats.
+                struct __attribute__((__packed__)) { float linear; float angular; } data;
+                usb_msg_read_into(&data, sizeof(data));
+
+                Controller_Set_Target_Position(&controller,data.linear)
             }
             break;    
         case 'D':
@@ -395,6 +403,16 @@ void Message_Handling_Task()
                 // then process your D...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a D so no need to save it as a variable
 
+                // Build a meaningful structure to put your data in. Here we want three floats.
+                struct __attribute__((__packed__)) { float linear; float angular; float duration} data;
+                usb_msg_read_into(&data, sizeof(data));
+
+                if(data.duration < 0){
+                    mf_distance_mode.active = false;
+                    mf_stop_PWM.active = true;
+                }else{
+                    mf_distance_mode.duration = duration;
+                }
             }
             break;      
         case 'v':
@@ -403,6 +421,7 @@ void Message_Handling_Task()
                 // then process your v...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a v so no need to save it as a variable
 
+                mf_velocity_mode.active = true;
             } 
             break;  
         case 'V':
@@ -417,13 +436,14 @@ void Message_Handling_Task()
         case '~':
             if(usb_msg_length() >= MEGN540_Message_Len('~')){
                 // then process your reset by setting the mf_restart flag 
+                usb_flush_input_buffer();
                 mf_restart.active = true;
             }
             break;
         default:
             // What to do if you dont recognize the command character
-            usb_send_msg("cc", '?', &command, sizeof(command));
             usb_flush_input_buffer();
+            usb_send_msg("cc", '?', &command, sizeof(command));
             break;
     }
 }

@@ -37,6 +37,7 @@
 
 #include "SerialIO.h"
 #include "Timing.h"
+#include "Controller.h"
 
 /** PWM data struct */
 struct PWM_INFO { int16_t left_PWM; int16_t right_PWM; float duration; bool timed;} PWM_data;
@@ -54,6 +55,8 @@ MSG_FLAG_t mf_send_voltage;      ///<-- Indicates if the system should report ba
 MSG_FLAG_t mf_set_PWM; 		     ///<-- Indicates if the system should set the PWM.
 MSG_FLAG_t mf_stop_PWM; 	     ///<-- Indicates if the system should stop PWM and disable the motor.
 MSG_FLAG_t mf_send_sys_info;     ///<-- Indicates if the system should send system identification info.
+MSG_FLAG_t mf_distance_mode;     ///<-- Indicates if the system should move in terms of distance
+MSG_FLAG_t mf_velocity_mode;     ///<-- Indicates if the system should move in terms of velocity
 
 /**
  * Function MSG_FLAG_Execute indicates if the action associated with the message flag should be executed
