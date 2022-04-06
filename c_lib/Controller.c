@@ -44,7 +44,9 @@
  */
 void Controller_Init(Controller_t* p_cont, float kp, float* num, float* den, uint8_t order, float update_period)
 {
-
+    p_cont->kp = kp;
+    p_cont->update_period = update_period;
+    p_cont->controller = Filter_Init(&p_cont->controller, num, den, order); // Initalize control filter
 }
 
 /**
@@ -53,7 +55,7 @@ void Controller_Init(Controller_t* p_cont, float kp, float* num, float* den, uin
  */
 void Controller_Set_Target_Velocity( Controller_t* p_cont, float vel )
 {
-
+    p_cont->target_vel = vel;
 }
 
 /**
@@ -62,15 +64,26 @@ void Controller_Set_Target_Velocity( Controller_t* p_cont, float vel )
  */
 void Controller_Set_Target_Position( Controller_t* p_cont, float vel )
 {
-
+    p_cont->target_vel = 0;
+    p_cont->target_pos = vel * p_cont->update_period;
 }
 
 /**
  * Function Controller_Update takes in a new measurement and returns the
  * new control value.
  */
-float Controller_Update( Controller_t* p_cont, float measurement, float dt ){
+float Controller_Update( Controller_t* p_cont, float measurement, float dt )
+{
+    float filter_val = Filter_Value(&p_cont->controller, measurement);
 
+    if(p_cont->target_vel > 0){
+        float target = measurement + dt * p_cont->target_vel;
+    }else{
+        float target = p_cont->target_pos;
+    } 
+
+    float last_control_command = p_cont->kp * (target - filter_val);
+    return last_control_command;
 }
 
 /**
@@ -78,7 +91,7 @@ float Controller_Update( Controller_t* p_cont, float measurement, float dt ){
  */
 float Controller_Last( Controller_t* p_cont)
 {
-
+    return last_control_command;
 }
 
 /**
@@ -87,7 +100,7 @@ float Controller_Last( Controller_t* p_cont)
  */
 void Controller_SetTo(Controller_t* p_cont, float measurement )
 {
-
+    Filter_SetTo(p_cont, measurement);
 }
 
 /**
@@ -96,5 +109,5 @@ void Controller_SetTo(Controller_t* p_cont, float measurement )
  */
 void Controller_ShiftBy(Controller_t* p_cont, float measurement )
 {
-
+    Filter_ShiftBy(p_cont, measurement);
 }
