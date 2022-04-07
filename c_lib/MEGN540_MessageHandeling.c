@@ -388,10 +388,11 @@ void Message_Handling_Task()
                 // then process your d...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a d so no need to save it as a variable
 
-                mf_distance_mode.active = true;
                 // Build a meaningful structure to put your data in. Here we want two floats.
                 struct __attribute__((__packed__)) { float linear; float angular; } data;
                 usb_msg_read_into(&data, sizeof(data));
+
+                mf_distance_mode.active = true;
 
                 Dist_data.linear  = data.linear;
                 Dist_data.angular = data.angular;
@@ -414,7 +415,7 @@ void Message_Handling_Task()
                     mf_stop_PWM.active = true;
                 }else{
                     mf_distance_mode.duration = data.duration;
-                    Dist_data.duration = data.duration;
+                    Dist_data.duration = data.duration/1000;
                 }
                 Dist_data.linear  = data.linear;
                 Dist_data.angular = data.angular;
@@ -452,11 +453,11 @@ void Message_Handling_Task()
                     mf_stop_PWM.active = true;
                 }else{
                     mf_velocity_mode.duration = data.duration;
-                    Veloc_data.duration = data.duration;
+                    Veloc_data.duration = data.duration/1000;
                 }
                 Veloc_data.linear  = data.linear;
                 Veloc_data.angular = data.angular;
-            } 
+            }
             break;             
         case '~':
             if(usb_msg_length() >= MEGN540_Message_Len('~')){
