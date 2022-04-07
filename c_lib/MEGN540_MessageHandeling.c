@@ -393,7 +393,7 @@ void Message_Handling_Task()
                 struct __attribute__((__packed__)) { float linear; float angular; } data;
                 usb_msg_read_into(&data, sizeof(data));
 
-                Dist_data.linear = data.linear;
+                Dist_data.linear  = data.linear;
                 Dist_data.angular = data.angular;
                 //Controller_Set_Target_Position(&controller,data.linear)
             }
