@@ -42,6 +42,10 @@
 /** PWM data struct */
 struct PWM_INFO { int16_t left_PWM; int16_t right_PWM; float duration; bool timed;} PWM_data;
 
+/** Movement info */
+struct MOVE_INFO {float linear; float angular; float duration} Dist_data;
+struct MOVE_INFO {float linear; float angular; float duration} Veloc_data;
+
 /** Message Driven State Machine Flags */
 typedef struct MSG_FLAG { bool active; float duration; char command; uint8_t subcommand; Time_t last_trigger_time; } MSG_FLAG_t;
 

@@ -393,6 +393,8 @@ void Message_Handling_Task()
                 struct __attribute__((__packed__)) { float linear; float angular; } data;
                 usb_msg_read_into(&data, sizeof(data));
 
+                Dist_data.linear = data.linear;
+                Dist_data.angular = data.angular;
                 //Controller_Set_Target_Position(&controller,data.linear)
             }
             break;    
@@ -411,8 +413,11 @@ void Message_Handling_Task()
                     mf_distance_mode.active = false;
                     mf_stop_PWM.active = true;
                 }else{
-                    mf_distance_mode.duration = duration;
+                    mf_distance_mode.duration = data.duration;
+                    Dist_data.duration = data.duration;
                 }
+                Dist_data.linear  = data.linear;
+                Dist_data.angular = data.angular;
             }
             break;      
         case 'v':
@@ -426,6 +431,9 @@ void Message_Handling_Task()
                 usb_msg_read_into(&data, sizeof(data));
 
                 mf_velocity_mode.active = true;
+
+                Veloc_data.linear  = data.linear;
+                Veloc_data.angular = data.angular;
             } 
             break;  
         case 'V':
@@ -443,9 +451,11 @@ void Message_Handling_Task()
                     mf_velocity_mode.active = false;
                     mf_stop_PWM.active = true;
                 }else{
-                    mf_velocity_mode.duration = duration;
+                    mf_velocity_mode.duration = data.duration;
+                    Veloc_data.duration = data.duration;
                 }
-
+                Veloc_data.linear  = data.linear;
+                Veloc_data.angular = data.angular;
             } 
             break;             
         case '~':
