@@ -421,6 +421,10 @@ void Message_Handling_Task()
                 // then process your v...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a v so no need to save it as a variable
 
+                // Build a meaningful structure to put your data in. Here we want two floats.
+                struct __attribute__((__packed__)) { float linear; float angular; } data;
+                usb_msg_read_into(&data, sizeof(data));
+
                 mf_velocity_mode.active = true;
             } 
             break;  
@@ -430,6 +434,17 @@ void Message_Handling_Task()
             if(usb_msg_length() >= MEGN540_Message_Len('V')){
                 // then process your v...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a V so no need to save it as a variable
+                
+                // Build a meaningful structure to put your data in. Here we want three floats.
+                struct __attribute__((__packed__)) { float linear; float angular; float duration} data;
+                usb_msg_read_into(&data, sizeof(data));
+
+                if(data.duration < 0){
+                    mf_velocity_mode.active = false;
+                    mf_stop_PWM.active = true;
+                }else{
+                    mf_velocity_mode.duration = duration;
+                }
 
             } 
             break;             
