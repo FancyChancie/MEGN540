@@ -45,14 +45,14 @@ void Motor_PWM_Enable( bool enable ) {
         // Set motor enabled flag
         motor_enabled = true;
     }else{
-        DDRB &= (0 << DDB5); 
-        DDRB &= (0 << DDB6); 
+        DDRB &= ~(1 << DDB5); 
+        DDRB &= ~(1 << DDB6); 
 
-        DDRB &= (0 << DDB1); 
-        DDRB &= (0 << DDB2); 
+        DDRB &= ~(1 << DDB1); 
+        DDRB &= ~(1 << DDB2); 
 
-        TCCR1A &= (0 << COM1A1);
-        TCCR1A &= (0 << COM1B1);
+        TCCR1A &= ~(1 << COM1A1);
+        TCCR1A &= ~(1 << COM1B1);
 
         motor_enabled = false;
     }
