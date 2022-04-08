@@ -64,7 +64,6 @@ int main(void)
     bool firstLoop  = true;
     bool firstLoopV = true;
     bool firstLoopSysData = true;
-    bool loop = true;
     
     // Variable for storing user command
     char command;
@@ -247,55 +246,35 @@ int main(void)
 
         // [State-machine flag] Set the motors
         if(MSG_FLAG_Execute(&mf_set_PWM)){
-            if(PWM_data.timed == false){
-                Motor_PWM_Enable(true);
+            Motor_PWM_Enable(true);
 
-                if(PWM_data.right_PWM < 0){
-                    PORTB &= (1 << PB1);
-                }
-                else{
-                    PORTB &= ~(1 << PB1);
-                }
-
-                if(PWM_data.left_PWM < 0){
-                    PORTB &= (1 << PB2);
-                }
-                else{
-                    PORTB &= ~(1 << PB2);
-                }
-
-                Motor_PWM_Left(PWM_data.left_PWM);
-                Motor_PWM_Right(PWM_data.right_PWM);
-
-                mf_set_PWM.active = false;
-
-            //// STILL NEEDS WORK ////
-            }else if(SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
-                Motor_PWM_Left(0);
-                Motor_PWM_Right(0);
-                Motor_PWM_Enable(false);
-                mf_set_PWM.active = false;
-                usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
-            }else{
-                Motor_PWM_Enable(true);
-
-                if(PWM_data.right_PWM < 0){
-                    PORTB &= (1 << PB1);
-                }
-                else{
-                    PORTB &= ~(1 << PB1);
-                }
-
-                if(PWM_data.left_PWM < 0){
-                    PORTB &= (1 << PB2);
-                }
-                else{
-                    PORTB &= ~(1 << PB2);
-                }
-
-                Motor_PWM_Left(PWM_data.left_PWM);
-                Motor_PWM_Right(PWM_data.right_PWM);
+            if(PWM_data.right_PWM < 0){
+                PORTB |= (1 << PB1);
+                PWM_data.right_PWM = -PWM_data.right_PWM;
             }
+            else{
+                PORTB &= ~(1 << PB1);
+            }
+
+            if(PWM_data.left_PWM < 0){
+                PORTB |= (1 << PB2);
+                PWM_data.left_PWM = -PWM_data.left_PWM;
+            }
+            else{
+                PORTB &= ~(1 << PB2);
+            }
+
+            Motor_PWM_Left(PWM_data.left_PWM);
+            Motor_PWM_Right(PWM_data.right_PWM);
+            
+            if(PWM_data.timed == false){
+                mf_set_PWM.active = false;
+            }
+            
+            else if(PWM_data.timed && SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
+                mf_set_PWM.active = false;
+                mf_stop_PWM.active = true;
+            }        
         }
 
         // [State-machine flag] Stop the motors
@@ -318,8 +297,8 @@ int main(void)
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
                 systemData.PWM_L     = Get_Motor_PWM_Left();
                 systemData.PWM_R     = Get_Motor_PWM_Right();
-                systemData.Encoder_L = Counts_Left();
-                systemData.Encoder_R = Counts_Right();
+                systemData.Encoder_L = Rad_Left();
+                systemData.Encoder_R = Rad_Right();
 
                 usb_send_msg("cf4h",'q',&systemData,sizeof(systemData));
 
@@ -333,8 +312,8 @@ int main(void)
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
                 systemData.PWM_L     = Get_Motor_PWM_Left();
                 systemData.PWM_R     = Get_Motor_PWM_Right();
-                systemData.Encoder_L = Counts_Left();
-                systemData.Encoder_R = Counts_Right();
+                systemData.Encoder_L = Rad_Left();
+                systemData.Encoder_R = Rad_Right();
 
                 usb_send_msg("cf4h",'Q',&systemData,sizeof(systemData));
             }
