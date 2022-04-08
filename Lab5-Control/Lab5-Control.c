@@ -64,7 +64,10 @@ int main(void)
     bool firstLoop  = true;
     bool firstLoopV = true;
     bool firstLoopSysData = true;
+    bool firstLoopDist = true;
+    bool firstLoopVeloc = true;
     
+    //// Program timing stuff ////
     // Variable for storing user command
     char command;
     // Build a meaningful structure for storing data about timing
@@ -108,7 +111,8 @@ int main(void)
     struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R; int16_t Encoder_L; int16_t Encoder_R;} systemData;
 
 
-    //// System info stuff ////
+    //// Controller stuff ////
+    struct __attribute__((__packed__)) { Time_t startTime; Time_t last_trigger_time;} controlTime;
     // Left track controller values
     uint8_t order_L = 4;
     float Kp_L = 0;
@@ -125,6 +129,7 @@ int main(void)
     float update_period_R = update_period_L;
     Controller_t control_Filter_R;
     Controller_Init(&control_Filter_R,kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period_R);
+
 
     for (;;){
         // USB_Echo_Task();
@@ -331,6 +336,22 @@ int main(void)
                 systemData.Encoder_R = Rad_Right();
 
                 usb_send_msg("cf4h",'Q',&systemData,sizeof(systemData));
+            }
+        }
+
+        // [State-machine flag] Distance mode
+        if(MSG_FLAG_Execute(&mf_distance_mode){
+            if(firstLoopDist){
+                controlTime.startTime = GetTime();
+                firstLoopDist = !firstLoopDist;
+            }
+        }
+
+        // [State-machine flag] Velocity mode
+        if(MSG_FLAG_Execute(&mf_velocity_mode){
+            if(firstLoopVeloc){
+                controlTime.startTime = GetTime();
+                firstLoopVeloc = !firstLoopVeloc;
             }
         }
     }
