@@ -350,7 +350,7 @@ int main(void)
                 firstLoopDist = !firstLoopDist;
             }
 
-            if(mf_distance_mode.duration < 0 || SecondsSince(controlTime.last_trigger_time) >= mf_distance_mode.duration){
+            if(mf_distance_mode.duration < 0 || SecondsSince(controlTime.startTime) >= mf_distance_mode.duration){
                 mf_stop_PWM.active = true;
                 firstLoopDist = !firstLoopDist;
                 mf_distance_mode.active = false;
@@ -366,7 +366,7 @@ int main(void)
                 firstLoopVeloc = !firstLoopVeloc;
             }
 
-            if(mf_velocity_mode.duration < 0 || SecondsSince(controlTime.last_trigger_time) >= mf_velocity_mode.duration){
+            if(mf_velocity_mode.duration < 0 || SecondsSince(controlTime.startTime) >= mf_velocity_mode.duration){
                 mf_stop_PWM.active = true;
                 firstLoopVeloc = !firstLoopVeloc;
                 mf_velocity_mode.active = false;
