@@ -344,35 +344,35 @@ int main(void)
         }
 
         // [State-machine flag] Distance mode
-        if(MSG_FLAG_Execute(&mf_distance_mode){
+        if(MSG_FLAG_Execute(&mf_distance_mode)){
             if(firstLoopDist){
                 controlTime.startTime = GetTime();
                 firstLoopDist = !firstLoopDist;
             }
 
-            if(mf_distance_mode.duration < 0 || (SecondsSince(controlTime.last_trigger_time) >= mf_distance_mode.duration){
+            if(mf_distance_mode.duration < 0 || SecondsSince(controlTime.last_trigger_time) >= mf_distance_mode.duration){
                 mf_stop_PWM.active = true;
                 firstLoopDist = !firstLoopDist;
-            }else{
-
-            }
-        }
-
-        // [State-machine flag] Velocity mode
-        if(MSG_FLAG_Execute(&mf_velocity_mode){
-            if(firstLoopVeloc){
-                controlTime.startTime = GetTime();
-                firstLoopVeloc = !firstLoopVeloc;
-            }
-
-            if(mf_velocity_mode.duration < 0 || (SecondsSince(controlTime.last_trigger_time) >= mf_velocity_mode.duration){
-                mf_stop_PWM.active = true;
-                firstLoopVeloc = !firstLoopVeloc;
+                mf_distance_mode.active = false;
             }else{
                 
             }
         }
 
+        // [State-machine flag] Velocity mode
+        if(MSG_FLAG_Execute(&mf_velocity_mode)){
+            if(firstLoopVeloc){
+                controlTime.startTime = GetTime();
+                firstLoopVeloc = !firstLoopVeloc;
+            }
 
+            if(mf_velocity_mode.duration < 0 || SecondsSince(controlTime.last_trigger_time) >= mf_velocity_mode.duration){
+                mf_stop_PWM.active = true;
+                firstLoopVeloc = !firstLoopVeloc;
+                mf_velocity_mode.active = false;
+            }else{
+                
+            }
+        }
     }
 }
