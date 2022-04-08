@@ -89,13 +89,13 @@ int main(void)
     // Lower voltage threshold to warn if power is off
     float offBattVoltage = 0.5;
     // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz (15), sampling = 125000Hz (200), order 4)
-    int   order = 4;
-    float numerator_coeffs[5]   = {0.00178260999192539,0.00713043996770157,0.0106956599515524,0.00713043996770157,0.00178260999192539}; // Matlab B values
-    float denominator_coeffs[5] = {1,-2.77368231754887,3.01903869942386,-1.50476505142532,0.287930429421141}; // Matlab A values
+    int   order_V = 4;
+    float numerator_coeffs_B[order_V+1]   = {0.00178260999192539,0.00713043996770157,0.0106956599515524,0.00713043996770157,0.00178260999192539}; // Matlab B values
+    float denominator_coeffs_B[order_V+1] = {1,-2.77368231754887,3.01903869942386,-1.50476505142532,0.287930429421141}; // Matlab A values
     // Create instance of filter stucture for battery voltage
     Filter_Data_t voltage_Filter;
     // Initalize filter (might be good to add an if to the Initalize() call to reinitalize this too, if needed)
-    Filter_Init(&voltage_Filter, numerator_coeffs, denominator_coeffs, order);
+    Filter_Init(&voltage_Filter, numerator_coeffs_V, denominator_coeffs_V, order_V);
     // Initialize variables for saving unfltered & filtered voltage
     float filtered_voltage   = 0;
     float unfiltered_voltage = 0;
@@ -110,14 +110,21 @@ int main(void)
 
     //// System info stuff ////
     // Left track controller values
+    uint8_t order_L = 4;
     float Kp_L = 0;
-    float numerator_coeffs_L[2] = {0,0};     
-    float denominator_coeffs_L[3] = {0,0,0};
+    float numerator_coeffs_L[order_L+1] = {0,0};     
+    float denominator_coeffs_L[order_L+1] = {0,0};
+    float update_period_L = 5.0;
+    Controller_t control_Filter_L;
+    Controller_Init(&control_Filter_L,kp_L,numerator_coeffs_L,denominator_coeffs_L,order_L,update_period_L);
     // Right track controller values
+    uint8_t order_R = order_L;
     float Kp_R = 0;
-    float numerator_coeffs_R[2] = {0,0};     
-    float denominator_coeffs_R[3] = {0,0,0};
-
+    float numerator_coeffs_R[order_R+1] = {0,0};     
+    float denominator_coeffs_R[order_R+1] = {0,0};
+    float update_period_R = update_period_L;
+    Controller_t control_Filter_R;
+    Controller_Init(&control_Filter_R,kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period_R);
 
     for (;;){
         // USB_Echo_Task();
