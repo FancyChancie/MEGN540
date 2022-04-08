@@ -70,6 +70,7 @@ int main(void)
     // Build a meaningful structure for storing data about timing
     struct __attribute__((__packed__)) { uint8_t B; float f; } timeData;
 
+
     //// Battery voltage stuff ////
     // Low battery message
     struct __attribute__((__packed__)) { char let[7]; float volt; } low_batt_msg = {.let = {'B','A','T',' ','L','O','W'},.volt = 0.1};
@@ -82,7 +83,7 @@ int main(void)
     // Time structure for sending battery/power warnings every X seconds
     Time_t battPwrWarnTimer = GetTime();
     // Send warning every X seconds rather than constantly
-    float battPwrWarnInterval = 3;
+    float battPwrWarnInterval = 10;
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.1875 * 4;
     // Lower voltage threshold to warn if power is off
@@ -99,13 +100,24 @@ int main(void)
     float filtered_voltage   = 0;
     float unfiltered_voltage = 0;
 
+
     //// System info stuff ////
     // Build a meaningful structure for storing data about timing for sending system info
     struct __attribute__((__packed__)) { float interval; Time_t startTime; Time_t last_trigger_time;} systemDataTime;
     // Build a meaningful structure for storing data about system info
     struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R; int16_t Encoder_L; int16_t Encoder_R;} systemData;
-    // struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R;} systemData;
-    // struct __attribute__((__packed__)) { float time; int16_t Encoder_L; int16_t Encoder_R;} systemData;
+
+
+    //// System info stuff ////
+    // Left track controller values
+    float Kp_L = 0;
+    float numerator_coeffs_L[2] = {0,0};     
+    float denominator_coeffs_L[3] = {0,0,0};
+    // Right track controller values
+    float Kp_R = 0;
+    float numerator_coeffs_R[2] = {0,0};     
+    float denominator_coeffs_R[3] = {0,0,0};
+
 
     for (;;){
         // USB_Echo_Task();
@@ -132,7 +144,7 @@ int main(void)
             }else if(SecondsSince(&mf_send_time.last_trigger_time) >= mf_send_time.duration){
                     usb_send_msg("cBf", command, &timeData, sizeof(timeData)); // send response
                     mf_send_time.last_trigger_time = GetTime();
-                }
+            }
         }
 
         // [State-machine flag] Time to complete loop
@@ -154,7 +166,7 @@ int main(void)
                 }else if(SecondsSince(&mf_loop_timer.last_trigger_time) >= mf_loop_timer.duration){
                         usb_send_msg("cBf", command, &timeData, sizeof(timeData)); // send response
                         mf_loop_timer.last_trigger_time = GetTime();
-                    }
+                }
             }
             firstLoop = !firstLoop; // flip boolean since it is only checking the time of one loop
         }
@@ -221,7 +233,6 @@ int main(void)
                 // Send warning if battery voltage below minimum voltage but power is NOT off
                 if(filtered_voltage <= minBatVoltage && filtered_voltage > offBattVoltage){
                     low_batt_msg.volt = filtered_voltage;
-                    // usb_send_msg("cf", 'b', &filtered_voltage, sizeof(filtered_voltage));
                     usb_send_msg("c7sf",'!',&low_batt_msg,sizeof(low_batt_msg));
                     // Disable motors if battery too low
                     Motor_PWM_Enable(false);
@@ -251,16 +262,14 @@ int main(void)
             if(PWM_data.right_PWM < 0){
                 PORTB |= (1 << PB1);
                 PWM_data.right_PWM = -PWM_data.right_PWM;
-            }
-            else{
+            }else{
                 PORTB &= ~(1 << PB1);
             }
 
             if(PWM_data.left_PWM < 0){
                 PORTB |= (1 << PB2);
                 PWM_data.left_PWM = -PWM_data.left_PWM;
-            }
-            else{
+            }else{
                 PORTB &= ~(1 << PB2);
             }
 
@@ -269,9 +278,7 @@ int main(void)
             
             if(PWM_data.timed == false){
                 mf_set_PWM.active = false;
-            }
-            
-            else if(PWM_data.timed && SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
+            }else if(PWM_data.timed && SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
                 mf_set_PWM.active = false;
                 mf_stop_PWM.active = true;
             }        
@@ -283,6 +290,8 @@ int main(void)
             Motor_PWM_Right(0);
             Motor_PWM_Enable(false);
             mf_stop_PWM.active = false;
+            mf_velocity_mode.active = false;
+            mf_distance_mode.active = false;
         }
 
         // [State-machine flag] Send system information
@@ -292,7 +301,6 @@ int main(void)
                 firstLoopSysData = !firstLoopSysData;
             }
             
-
             if(mf_send_sys_info.duration <= 0){
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
                 systemData.PWM_L     = Get_Motor_PWM_Left();
