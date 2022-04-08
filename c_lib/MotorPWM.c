@@ -22,6 +22,9 @@ void Motor_PWM_Init( uint16_t MAX_PWM ) {
 
     // Set ICRI register to Max_PWM
     Set_MAX_Motor_PWM(MAX_PWM);
+
+    Motor_PWM_Left(0);
+    Motor_PWM_Right(0);
 }
 
 /**
@@ -72,8 +75,8 @@ bool Is_Motor_PWM_Enabled() {
  */
 void Motor_PWM_Left( int16_t pwm ) {
     // (Sec. 14.10.10)
-    OCR1BH = ((uint16_t) pwm) & 0xFF;
-    OCR1BL = (((uint16_t) pwm) >> 8) & 0xFF;
+    OCR1BL = ((uint16_t) pwm) & 0xFF;
+    OCR1BH = (((uint16_t) pwm) >> 8) & 0xFF;
 }
 
 /**
@@ -82,8 +85,8 @@ void Motor_PWM_Left( int16_t pwm ) {
  */
 void Motor_PWM_Right( int16_t pwm ) {
     // (Sec. 14.10.9)
-    OCR1AH = ((uint16_t) pwm) & 0xFF;
-    OCR1AL = (((uint16_t) pwm) >> 8) & 0xFF;
+    OCR1AL = ((uint16_t) pwm) & 0xFF;
+    OCR1AH = (((uint16_t) pwm) >> 8) & 0xFF;
 }
 
 /**
@@ -93,7 +96,7 @@ void Motor_PWM_Right( int16_t pwm ) {
  */
 int16_t Get_Motor_PWM_Left() {
     int16_t duty_cycle;
-    duty_cycle = (OCR1BL << 8) | OCR1BH;
+    duty_cycle = (OCR1BH << 8) | OCR1BL;
     return duty_cycle;
 }
 
@@ -104,7 +107,7 @@ int16_t Get_Motor_PWM_Left() {
  */
 int16_t Get_Motor_PWM_Right() {
     int16_t duty_cycle;
-    duty_cycle = (OCR1AL << 8) | OCR1AH;
+    duty_cycle = (OCR1AH << 8) | OCR1AL;
     return duty_cycle;
 }
 
