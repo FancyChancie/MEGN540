@@ -49,7 +49,7 @@ bool MSG_FLAG_Execute(MSG_FLAG_t* p_flag)
 {
     // If active and duration is less than (or equal to) the last trigger time, return true,
     // otherwise, return false
-    return p_flag->active && (p_flag->duration <= SecondsSince(&p_flag->last_trigger_time));
+    return p_flag->active;
 }
 
 
