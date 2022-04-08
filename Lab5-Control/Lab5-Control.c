@@ -130,6 +130,10 @@ int main(void)
     Controller_t control_Filter_R;
     Controller_Init(&control_Filter_R,kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period_R);
 
+    //// Zumo car physical stuff ////
+    int trackWheelDiameter = 0.035          // [m] (aka 35 mm)
+    int trackSeparationDistance = 0.084;    // [m] (aka 84 mm)
+
 
     for (;;){
         // USB_Echo_Task();
@@ -345,6 +349,13 @@ int main(void)
                 controlTime.startTime = GetTime();
                 firstLoopDist = !firstLoopDist;
             }
+
+            if(mf_distance_mode.duration < 0 || (SecondsSince(controlTime.last_trigger_time) >= mf_distance_mode.duration){
+                mf_stop_PWM.active = true;
+                firstLoopDist = !firstLoopDist;
+            }else{
+
+            }
         }
 
         // [State-machine flag] Velocity mode
@@ -353,6 +364,15 @@ int main(void)
                 controlTime.startTime = GetTime();
                 firstLoopVeloc = !firstLoopVeloc;
             }
+
+            if(mf_velocity_mode.duration < 0 || (SecondsSince(controlTime.last_trigger_time) >= mf_velocity_mode.duration){
+                mf_stop_PWM.active = true;
+                firstLoopVeloc = !firstLoopVeloc;
+            }else{
+                
+            }
         }
+
+
     }
 }
