@@ -36,7 +36,6 @@
 #include "../c_lib/Filter.h"
 #include "../c_lib/Battery_Monitor.h"
 #include "../c_lib/Controller.h"
-// #include "../c_lib/Task_Scheduler.h"
 
 /** 
  * Function to re/initialize states
@@ -355,7 +354,7 @@ int main(void)
                 firstLoopDist = !firstLoopDist;
                 mf_distance_mode.active = false;
             }else{
-                
+                // Controller_Update();
             }
         }
 

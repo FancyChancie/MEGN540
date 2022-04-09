@@ -8,6 +8,7 @@
         "megn540_messagehandeling.h": "c",
         "chrono": "c",
         "serialio.h": "c",
-        "filter.h": "c"
+        "filter.h": "c",
+        "battery_monitor.h": "c"
     }
 }
