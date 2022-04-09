@@ -386,6 +386,8 @@ int main(void)
                     // Save travel distance
                     distanceTraveled_Last_L = distanceTraveled_L - distanceTraveled_Last_L;
                     distanceTraveled_Last_R = distanceTraveled_R - distanceTraveled_Last_R;
+
+                    controlTime.last_trigger_time = GetTime();
                 }else{
 	                firstLoopDist = !firstLoopDist;
                     mf_stop_PWM.active = true;
