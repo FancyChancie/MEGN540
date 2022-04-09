@@ -66,14 +66,17 @@ int main(void)
     bool firstLoopDist = true;
     bool firstLoopVeloc = true;
     
+    //////////////////////////////
     //// Program timing stuff ////
+    //////////////////////////////
     // Variable for storing user command
     char command;
     // Build a meaningful structure for storing data about timing
     struct __attribute__((__packed__)) { uint8_t B; float f; } timeData;
 
-
+    ///////////////////////////////
     //// Battery voltage stuff ////
+    ///////////////////////////////
     // Low battery message
     struct __attribute__((__packed__)) { char let[7]; float volt; } low_batt_msg = {.let = {'B','A','T',' ','L','O','W'},.volt = 0.1};
     // Power off message
@@ -102,16 +105,22 @@ int main(void)
     float filtered_voltage   = 0;
     float unfiltered_voltage = 0;
 
-
+    ///////////////////////////
     //// System info stuff ////
+    ///////////////////////////
     // Build a meaningful structure for storing data about timing for sending system info
     struct __attribute__((__packed__)) { float interval; Time_t startTime; Time_t last_trigger_time;} systemDataTime;
     // Build a meaningful structure for storing data about system info
     struct __attribute__((__packed__)) { float time; int16_t PWM_L; int16_t PWM_R; int16_t Encoder_L; int16_t Encoder_R;} systemData;
 
-
+    //////////////////////////
     //// Controller stuff ////
+    //////////////////////////
     struct __attribute__((__packed__)) { Time_t startTime; Time_t last_trigger_time;} controlTime;
+    float distanceTraveled_Last_L;
+    float distanceTraveled_Last_R;
+    float startRad_L;
+    float startRad_R;
     // Left track controller values
     uint8_t order_L = 4;
     float Kp_L = 0;
@@ -129,9 +138,12 @@ int main(void)
     Controller_t control_Filter_R;
     Controller_Init(&control_Filter_R,kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period_R);
 
+    /////////////////////////////////
     //// Zumo car physical stuff ////
-    int trackWheelDiameter = 0.035          // [m] (aka 35 mm)
-    int trackSeparationDistance = 0.084;    // [m] (aka 84 mm)
+    /////////////////////////////////
+    float trackWheelDiameter = 0.035          // [m] (aka 35 mm)
+    float trackWheelRadius = trackWheelDiameter/2;
+    float trackSeparationDistance = 0.084;    // [m] (aka 84 mm)
 
 
     for (;;){
@@ -345,7 +357,12 @@ int main(void)
         // [State-machine flag] Distance mode
         if(MSG_FLAG_Execute(&mf_distance_mode)){
             if(firstLoopDist){
+                distanceTraveled_Last_L = 0;
+                distanceTraveled_Last_R = 0;
+                startRad_L = Rad_Left();
+                startRad_R = Rad_Right();
                 controlTime.startTime = GetTime();
+                controlTime.last_trigger_time = GetTime();
                 firstLoopDist = !firstLoopDist;
             }
 
@@ -354,7 +371,25 @@ int main(void)
                 firstLoopDist = !firstLoopDist;
                 mf_distance_mode.active = false;
             }else{
-                // Controller_Update();
+                // Linear
+                float distanceTraveled_L = (Rad_Left() - startRad_L) * trackWheelRadius;
+                float distanceTraveled_R = (Rad_Right() - startRad_R) * trackWheelRadius;
+                float distanceTraveled_Total = (distanceTraveled_L + distanceTraveled_R)/2;
+                // Angular
+                // STUFF GOES HERE
+
+                // Move distance
+                if(distanceTraveled_Total < Dist_data.linear){
+	                Motor_PWM_Left(Controller_Update(&control_Filter_L, distanceTraveled_L - distanceTraveled_Last_L, SecondsSince(controlTime.last_trigger_time)));
+	                Motor_PWM_Right(Controller_Update(&control_Filter_R, distanceTraveled_R - distanceTraveled_Last_R, SecondsSince(controlTime.last_trigger_time)));
+
+                    // Save travel distance
+                    distanceTraveled_Last_L = distanceTraveled_L - distanceTraveled_Last_L;
+                    distanceTraveled_Last_R = distanceTraveled_R - distanceTraveled_Last_R;
+                }else{
+	                firstLoopDist = !firstLoopDist;
+                    mf_stop_PWM.active = true;
+                }
             }
         }
 
@@ -370,7 +405,12 @@ int main(void)
                 firstLoopVeloc = !firstLoopVeloc;
                 mf_velocity_mode.active = false;
             }else{
-                
+                float delta_time = SecondsSince(controlTime.startTime);
+                // Linear
+                float distanceTraveled_L = Rad_Left()  * trackWheelRadius;
+                float distanceTraveled_R = Rad_Right() * trackWheelRadius;
+                float linearVelocity = sqrt(distanceTraveled_L^2 + distanceTraveled_R^2)/delta_time
+                // Angluar
             }
         }
     }
