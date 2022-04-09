@@ -76,13 +76,13 @@ void Controller_Set_Target_Position( Controller_t* p_cont, float vel )
 float Controller_Update( Controller_t* p_cont, float measurement, float dt )
 {
     float filter_val = Filter_Value(&p_cont->controller, measurement);
-
+    float target;
     // Position update
     if(p_cont->target_vel > 0){
-        float target = measurement + dt * p_cont->target_vel;
+        target = measurement + dt * p_cont->target_vel;
     // Velocity update
     }else{
-        float target = p_cont->target_pos;
+        target = p_cont->target_pos;
     } 
 
     float last_control_command = p_cont->kp * (target - filter_val);

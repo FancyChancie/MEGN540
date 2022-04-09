@@ -88,19 +88,19 @@ int main(void)
     // Time structure for sending battery/power warnings every X seconds
     Time_t battPwrWarnTimer = GetTime();
     // Send warning every X seconds rather than constantly
-    float battPwrWarnInterval = 10;
+    float battPwrWarnInterval = 3;
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.1875 * 4;
     // Lower voltage threshold to warn if power is off
     float offBattVoltage = 0.5;
     // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz (15), sampling = 125000Hz (200), order 4)
-    int   order_V = 4;
-    float numerator_coeffs_B[order_V+1]   = {0.00178260999192539,0.00713043996770157,0.0106956599515524,0.00713043996770157,0.00178260999192539}; // Matlab B values
-    float denominator_coeffs_B[order_V+1] = {1,-2.77368231754887,3.01903869942386,-1.50476505142532,0.287930429421141}; // Matlab A values
+    int   order = 4;
+    float numerator_coeffs[5]   = {0.00178260999192539,0.00713043996770157,0.0106956599515524,0.00713043996770157,0.00178260999192539}; // Matlab B values
+    float denominator_coeffs[5] = {1,-2.77368231754887,3.01903869942386,-1.50476505142532,0.287930429421141}; // Matlab A values
     // Create instance of filter stucture for battery voltage
     Filter_Data_t voltage_Filter;
     // Initalize filter (might be good to add an if to the Initalize() call to reinitalize this too, if needed)
-    Filter_Init(&voltage_Filter, numerator_coeffs_V, denominator_coeffs_V, order_V);
+    Filter_Init(&voltage_Filter, numerator_coeffs, denominator_coeffs, order);
     // Initialize variables for saving unfltered & filtered voltage
     float filtered_voltage   = 0;
     float unfiltered_voltage = 0;
@@ -122,26 +122,26 @@ int main(void)
     float startRad_L;
     float startRad_R;
     // Left track controller values
-    uint8_t order_L = 4;
+    uint8_t order_L = 1;
     float Kp_L = 0;
-    float numerator_coeffs_L[order_L+1] = {0,0};     
-    float denominator_coeffs_L[order_L+1] = {0,0};
+    float numerator_coeffs_L[2] = {1,0};     
+    float denominator_coeffs_L[2] = {1,0};
     float update_period_L = 5.0;
     Controller_t control_Filter_L;
-    Controller_Init(&control_Filter_L,kp_L,numerator_coeffs_L,denominator_coeffs_L,order_L,update_period_L);
+    Controller_Init(&control_Filter_L,Kp_L,numerator_coeffs_L,denominator_coeffs_L,order_L,update_period_L);
     // Right track controller values
     uint8_t order_R = order_L;
     float Kp_R = 0;
-    float numerator_coeffs_R[order_R+1] = {0,0};     
-    float denominator_coeffs_R[order_R+1] = {0,0};
+    float numerator_coeffs_R[2] = {1,0};     
+    float denominator_coeffs_R[2] = {1,0};
     float update_period_R = update_period_L;
     Controller_t control_Filter_R;
-    Controller_Init(&control_Filter_R,kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period_R);
+    Controller_Init(&control_Filter_R,Kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period_R);
 
     /////////////////////////////////
     //// Zumo car physical stuff ////
     /////////////////////////////////
-    float trackWheelDiameter = 0.035          // [m] (aka 35 mm)
+    float trackWheelDiameter = 0.035;          // [m] (aka 35 mm)
     float trackWheelRadius = trackWheelDiameter/2;
     float trackSeparationDistance = 0.084;    // [m] (aka 84 mm)
 
@@ -366,7 +366,7 @@ int main(void)
                 firstLoopDist = !firstLoopDist;
             }
 
-            if(mf_distance_mode.duration < 0 || SecondsSince(controlTime.startTime) >= mf_distance_mode.duration){
+            if(mf_distance_mode.duration < 0 || SecondsSince(&controlTime.startTime) >= mf_distance_mode.duration){
                 mf_stop_PWM.active = true;
                 firstLoopDist = !firstLoopDist;
                 mf_distance_mode.active = false;
@@ -380,8 +380,8 @@ int main(void)
 
                 // Move distance
                 if(distanceTraveled_Total < Dist_data.linear){
-	                Motor_PWM_Left(Controller_Update(&control_Filter_L, distanceTraveled_L - distanceTraveled_Last_L, SecondsSince(controlTime.last_trigger_time)));
-	                Motor_PWM_Right(Controller_Update(&control_Filter_R, distanceTraveled_R - distanceTraveled_Last_R, SecondsSince(controlTime.last_trigger_time)));
+	                Motor_PWM_Left(Controller_Update(&control_Filter_L, distanceTraveled_L - distanceTraveled_Last_L, SecondsSince(&controlTime.last_trigger_time)));
+	                Motor_PWM_Right(Controller_Update(&control_Filter_R, distanceTraveled_R - distanceTraveled_Last_R, SecondsSince(&controlTime.last_trigger_time)));
 
                     // Save travel distance
                     distanceTraveled_Last_L = distanceTraveled_L - distanceTraveled_Last_L;
@@ -400,16 +400,16 @@ int main(void)
                 firstLoopVeloc = !firstLoopVeloc;
             }
 
-            if(mf_velocity_mode.duration < 0 || SecondsSince(controlTime.startTime) >= mf_velocity_mode.duration){
+            if(mf_velocity_mode.duration < 0 || SecondsSince(&controlTime.startTime) >= mf_velocity_mode.duration){
                 mf_stop_PWM.active = true;
                 firstLoopVeloc = !firstLoopVeloc;
                 mf_velocity_mode.active = false;
             }else{
-                float delta_time = SecondsSince(controlTime.startTime);
+                float delta_time = SecondsSince(&controlTime.startTime);
                 // Linear
                 float distanceTraveled_L = Rad_Left()  * trackWheelRadius;
                 float distanceTraveled_R = Rad_Right() * trackWheelRadius;
-                float linearVelocity = sqrt(distanceTraveled_L^2 + distanceTraveled_R^2)/delta_time
+                //float linearVelocity = sqrt(distanceTraveled_L^2 + distanceTraveled_R^2)/delta_time;
                 // Angluar
             }
         }
