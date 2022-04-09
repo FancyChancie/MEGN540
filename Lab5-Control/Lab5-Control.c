@@ -92,7 +92,7 @@ int main(void)
     // Minimum battery voltage (min NiMh batt voltage * num batteries)
     float minBatVoltage = 1.1875 * 4;
     // Lower voltage threshold to warn if power is off
-    float offBattVoltage = 0.5;
+    float offBattVoltage = 3.0;
     // Order & coefficients for Butterworth filter from homework (cut off = 3750Hz (15), sampling = 125000Hz (200), order 4)
     int   order = 4;
     float numerator_coeffs[5]   = {0.00178260999192539,0.00713043996770157,0.0106956599515524,0.00713043996770157,0.00178260999192539}; // Matlab B values
