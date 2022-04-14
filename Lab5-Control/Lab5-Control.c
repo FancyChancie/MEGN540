@@ -29,6 +29,7 @@
 */
 
 #include "../c_lib/SerialIO.h"
+#include <stdlib.h>
 #include "../c_lib/MEGN540_MessageHandeling.h"
 #include "../c_lib/Timing.h"
 #include "../c_lib/Encoder.h"
@@ -37,7 +38,7 @@
 #include "../c_lib/Battery_Monitor.h"
 #include "../c_lib/Controller.h"
 
-/** 
+/**
  * Function to re/initialize states
  */
 void Initialize()
@@ -48,7 +49,7 @@ void Initialize()
     SetupTimer0();           // Initialize timer zero functionality
     Encoders_Init();         // Initalize encoders
     Battery_Monitor_Init();  // Initalize battery monitor
-    Motor_PWM_Init(380);     // Initialize motors at TOP PWM of 400
+    Motor_PWM_Init(400);     // Initialize motors at TOP PWM of 400
     usb_flush_input_buffer();// Flush buffer
 }
 
@@ -64,8 +65,9 @@ int main(void)
     bool firstLoopV = true;
     bool firstLoopSysData = true;
     bool firstLoopDist = true;
+    bool secondLoopDist = true;
     bool firstLoopVeloc = true;
-    
+
     //////////////////////////////
     //// Program timing stuff ////
     //////////////////////////////
@@ -119,24 +121,29 @@ int main(void)
     struct __attribute__((__packed__)) { Time_t startTime; Time_t last_trigger_time;} controlTime;
     float distanceTraveled_Last_L;
     float distanceTraveled_Last_R;
+    float angleTraveled_Last_L;
+    float angleTraveled_Last_R;
+    float velocity_L;
+    float velocity_R;
+    float velocity_T;
+    float angular_T;
     float startRad_L;
     float startRad_R;
+    float update_period = 0.005;
     // Left track controller values
     uint8_t order_L = 1;
-    float Kp_L = 0;
-    float numerator_coeffs_L[2] = {1,0};     
-    float denominator_coeffs_L[2] = {1,0};
-    float update_period_L = 5.0;
+    float Kp_L = 138.6274;
+    float numerator_coeffs_L[2] = {1,-0.925};
+    float denominator_coeffs_L[2] = {8.7776,-8.7026};
     Controller_t control_Filter_L;
-    Controller_Init(&control_Filter_L,Kp_L,numerator_coeffs_L,denominator_coeffs_L,order_L,update_period_L);
+    Controller_Init(&control_Filter_L,Kp_L,numerator_coeffs_L,denominator_coeffs_L,order_L,update_period);
     // Right track controller values
     uint8_t order_R = order_L;
-    float Kp_R = 0;
-    float numerator_coeffs_R[2] = {1,0};     
-    float denominator_coeffs_R[2] = {1,0};
-    float update_period_R = update_period_L;
+    float Kp_R = 138.2969;
+    float numerator_coeffs_R[2] = {1,-0.9249};
+    float denominator_coeffs_R[2] = {8.8115,-8.7364};
     Controller_t control_Filter_R;
-    Controller_Init(&control_Filter_R,Kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period_R);
+    Controller_Init(&control_Filter_R,Kp_R,numerator_coeffs_R,denominator_coeffs_R,order_R,update_period);
 
     /////////////////////////////////
     //// Zumo car physical stuff ////
@@ -156,16 +163,16 @@ int main(void)
             // Reinitialize everything
             Initialize();
         }
-        
+
         // [State-machine flag] Send time
         if(MSG_FLAG_Execute(&mf_send_time)){
             command = mf_send_time.command;
             timeData.B = mf_send_time.subcommand;
-            timeData.f = GetTimeSec(); 
+            timeData.f = GetTimeSec();
 
             usb_flush_input_buffer();
 
-            if(mf_send_time.duration <= 0){ 
+            if(mf_send_time.duration <= 0){
                 usb_send_msg("cBf", command, &timeData, sizeof(timeData)); // send response
                 mf_send_time.active = false;
             }else if(SecondsSince(&mf_send_time.last_trigger_time) >= mf_send_time.duration){
@@ -177,17 +184,17 @@ int main(void)
         // [State-machine flag] Time to complete loop
         if(MSG_FLAG_Execute(&mf_loop_timer)){
             static Time_t loopTimeStart;    // struct to store loop time (static so it doesn't get deleted after this inner loop ends)
-            
+
             if(firstLoop){
                 loopTimeStart = GetTime();   // fill loopTime struct
             }else{
                 command = mf_loop_timer.command;
                 timeData.B = mf_loop_timer.subcommand;
-                timeData.f = SecondsSince(&loopTimeStart); 
+                timeData.f = SecondsSince(&loopTimeStart);
 
                 usb_flush_input_buffer();
 
-                if(mf_loop_timer.duration <= 0){ 
+                if(mf_loop_timer.duration <= 0){
                     usb_send_msg("cBf", command, &timeData, sizeof(timeData)); // send response
                     mf_loop_timer.active = false;
                 }else if(SecondsSince(&mf_loop_timer.last_trigger_time) >= mf_loop_timer.duration){
@@ -206,9 +213,9 @@ int main(void)
 
             // Build a meaningful structure to put subcommand and time in.
             struct __attribute__((__packed__)) { uint8_t B; float f; } data;
-            
+
             data.B = usb_msg_get();  // store subcommand
-            
+
             Time_t floatSendStart = GetTime();   // struct for time to send float
             usb_send_msg("cf", 'g', &gravity, sizeof(gravity)); // send float
             USB_Upkeep_Task(); // wait for send (won't send without this)
@@ -270,7 +277,7 @@ int main(void)
                 }
             }
         }
-        
+
         // [State-machine flag] Send battery voltage
         if(MSG_FLAG_Execute(&mf_send_voltage)){
             if(mf_send_voltage.duration <= 0){
@@ -302,13 +309,15 @@ int main(void)
 
             Motor_PWM_Left(PWM_data.left_PWM);
             Motor_PWM_Right(PWM_data.right_PWM);
-            
+
             if(PWM_data.timed == false){
                 mf_set_PWM.active = false;
-            }else if(PWM_data.timed && SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
+            }
+
+            else if(PWM_data.timed && SecondsSince(&mf_set_PWM.last_trigger_time) >= mf_set_PWM.duration){
                 mf_set_PWM.active = false;
                 mf_stop_PWM.active = true;
-            }        
+            }
         }
 
         // [State-machine flag] Stop the motors
@@ -319,6 +328,7 @@ int main(void)
             mf_stop_PWM.active = false;
             mf_velocity_mode.active = false;
             mf_distance_mode.active = false;
+            usb_flush_input_buffer();
         }
 
         // [State-machine flag] Send system information
@@ -327,7 +337,7 @@ int main(void)
                 systemDataTime.startTime = GetTime();
                 firstLoopSysData = !firstLoopSysData;
             }
-            
+
             if(mf_send_sys_info.duration <= 0){
                 systemData.time      = SecondsSince(&systemDataTime.startTime);
                 systemData.PWM_L     = Get_Motor_PWM_Left();
@@ -340,7 +350,7 @@ int main(void)
                 mf_send_sys_info.active = false;
 
                 firstLoopSysData = !firstLoopSysData;
-                
+
             }else if(SecondsSince(&systemDataTime.last_trigger_time) >= mf_send_sys_info.duration){
                 systemDataTime.last_trigger_time = GetTime();
 
@@ -357,39 +367,128 @@ int main(void)
         // [State-machine flag] Distance mode
         if(MSG_FLAG_Execute(&mf_distance_mode)){
             if(firstLoopDist){
+                Filter_Init(&control_Filter_L, numerator_coeffs_L, denominator_coeffs_L, order_L);
+                Filter_Init(&control_Filter_R, numerator_coeffs_R, denominator_coeffs_R, order_R);
+                // usb_send_msg("cf", 'B', &filtered_voltage, sizeof(filtered_voltage));
                 distanceTraveled_Last_L = 0;
                 distanceTraveled_Last_R = 0;
+                float distanceTraveled_L = 0;
+                
+                float distanceTraveled_R = 0;
+                float angleTraveled_L = 0;
+                float angleTraveled_R = 0;
+                angleTraveled_Last_L = 0;
+                angleTraveled_Last_R = 0;
                 startRad_L = Rad_Left();
                 startRad_R = Rad_Right();
                 controlTime.startTime = GetTime();
                 controlTime.last_trigger_time = GetTime();
-                firstLoopDist = !firstLoopDist;
+                firstLoopDist = false;
+                Motor_PWM_Enable(true);
             }
 
             if(mf_distance_mode.duration < 0 || SecondsSince(&controlTime.startTime) >= mf_distance_mode.duration){
                 mf_stop_PWM.active = true;
-                firstLoopDist = !firstLoopDist;
-                mf_distance_mode.active = false;
+                firstLoopDist = true;
             }else{
+                struct __attribute__((packed)) { float L; float R; float T;} trackData;
+                struct __attribute__((packed)) { float L; float R; } PWData;
                 // Linear
                 float distanceTraveled_L = (Rad_Left() - startRad_L) * trackWheelRadius;
                 float distanceTraveled_R = (Rad_Right() - startRad_R) * trackWheelRadius;
                 float distanceTraveled_Total = (distanceTraveled_L + distanceTraveled_R)/2;
                 // Angular
-                // STUFF GOES HERE
+                float angleTraveled_L = distanceTraveled_L / trackWheelRadius;
+                float angleTraveled_R = distanceTraveled_R / trackWheelRadius;
+                float angleTraveled_Total = (angleTraveled_R - angleTraveled_L)/2;
+
+                trackData.L = angleTraveled_L;
+                trackData.R = angleTraveled_R;
+                trackData.T = angleTraveled_Total;
 
                 // Move distance
-                if(distanceTraveled_Total < Dist_data.linear){
-	                Motor_PWM_Left(Controller_Update(&control_Filter_L, distanceTraveled_L - distanceTraveled_Last_L, SecondsSince(&controlTime.last_trigger_time)));
-	                Motor_PWM_Right(Controller_Update(&control_Filter_R, distanceTraveled_R - distanceTraveled_Last_R, SecondsSince(&controlTime.last_trigger_time)));
+                if(angleTraveled_Total < Dist_data.angular && Dist_data.angular != 0){
+                    if(SecondsSince(&controlTime.last_trigger_time) >= update_period){
+                        control_Filter_L.target_pos = -Dist_data.angular;
+                        control_Filter_R.target_pos = Dist_data.angular;
+                        // Motor_PWM_Left(Controller_Update(&control_Filter_L, angleTraveled_L - angleTraveled_Last_L, SecondsSince(&controlTime.last_trigger_time)));
+                        // Motor_PWM_Right(Controller_Update(&control_Filter_R, angleTraveled_R - angleTraveled_Last_R, SecondsSince(&controlTime.last_trigger_time)));
 
-                    // Save travel distance
-                    distanceTraveled_Last_L = distanceTraveled_L - distanceTraveled_Last_L;
-                    distanceTraveled_Last_R = distanceTraveled_R - distanceTraveled_Last_R;
+                        PWData.L = Controller_Update(&control_Filter_L, angleTraveled_L, SecondsSince(&controlTime.last_trigger_time));
+                        PWData.R = Controller_Update(&control_Filter_R, angleTraveled_R, SecondsSince(&controlTime.last_trigger_time));
 
-                    controlTime.last_trigger_time = GetTime();
+                        usb_send_msg("cff", 'p', &PWData, sizeof(PWData));
+
+                        if(PWData.R < 0){
+                            PORTB |= (1 << PB1);
+                            PWData.R = -PWData.R;
+                        }else{
+                            PORTB &= ~(1 << PB1);
+                        }
+
+                        if(PWData.L < 0){
+                            PORTB |= (1 << PB2);
+                            PWData.L = -PWData.L;
+                        }else{
+                            PORTB &= ~(1 << PB2);
+                        }
+
+                        Motor_PWM_Left(PWData.L);
+                        Motor_PWM_Right(PWData.R);
+
+                        // Save travel distance
+                        angleTraveled_Last_L = angleTraveled_L - angleTraveled_Last_L;
+                        angleTraveled_Last_R = angleTraveled_R - angleTraveled_Last_R;
+
+                        controlTime.last_trigger_time = GetTime();
+
+                        // usb_send_msg("cfff", 'I', &trackData, sizeof(trackData));
+                    }
+                // }else if(secondLoopDist && angleTraveled_Total > Dist_data.angular){
+                //     distanceTraveled_Last_L = 0;
+                //     distanceTraveled_Last_R = 0;
+                //     startRad_L = Rad_Left();
+                //     startRad_R = Rad_Right();
+                //     secondLoopDist = false;
+                }else if(distanceTraveled_Total < Dist_data.linear){
+                    if(SecondsSince(&controlTime.last_trigger_time) >= update_period){
+                        control_Filter_L.target_pos = Dist_data.linear;
+                        control_Filter_R.target_pos = Dist_data.linear;
+
+                        PWData.L = Controller_Update(&control_Filter_L, distanceTraveled_L, SecondsSince(&controlTime.last_trigger_time));
+                        PWData.R = Controller_Update(&control_Filter_R, distanceTraveled_R, SecondsSince(&controlTime.last_trigger_time));
+
+                        usb_send_msg("cff", 'p', &PWData, sizeof(PWData));
+                        // usb_send_msg("cf",'k',&distanceTraveled_Total,sizeof(distanceTraveled_Total));
+
+                        if(PWData.R < 0){
+                            PORTB |= (1 << PB1);
+                            PWData.R = -PWData.R;
+                        }else{
+                            PORTB &= ~(1 << PB1);
+                        }
+
+                        if(PWData.L < 0){
+                            PORTB |= (1 << PB2);
+                            PWData.L = -PWData.L;
+                        }else{
+                            PORTB &= ~(1 << PB2);
+                        }
+
+                        Motor_PWM_Left(PWData.L);
+                        Motor_PWM_Right(PWData.R);
+
+                        // Save travel distance
+                        distanceTraveled_Last_L = distanceTraveled_L - distanceTraveled_Last_L;
+                        distanceTraveled_Last_R = distanceTraveled_R - distanceTraveled_Last_R;
+
+                        controlTime.last_trigger_time = GetTime();
+
+                        // usb_send_msg("cff", 'I', &trackData, sizeof(trackData));
+                    }
                 }else{
-	                firstLoopDist = !firstLoopDist;
+                    mf_send_encoder.active = true;
+	                firstLoopDist = true;
                     mf_stop_PWM.active = true;
                 }
             }
@@ -398,8 +497,19 @@ int main(void)
         // [State-machine flag] Velocity mode
         if(MSG_FLAG_Execute(&mf_velocity_mode)){
             if(firstLoopVeloc){
+                Filter_Init(&voltage_Filter, numerator_coeffs, denominator_coeffs, order);
+                startRad_L = Rad_Left();
+                startRad_R = Rad_Right();
                 controlTime.startTime = GetTime();
+                controlTime.last_trigger_time = GetTime();
                 firstLoopVeloc = !firstLoopVeloc;
+                Motor_PWM_Enable(true);
+
+                velocity_L = Veloc_data.linear - (trackSeparationDistance*Veloc_data.angular)/2;
+                velocity_R = (trackSeparationDistance*Veloc_data.angular) + velocity_L;
+
+                control_Filter_L.target_vel = velocity_L;
+                control_Filter_R.target_vel = velocity_R;
             }
 
             if(mf_velocity_mode.duration < 0 || SecondsSince(&controlTime.startTime) >= mf_velocity_mode.duration){
@@ -407,13 +517,39 @@ int main(void)
                 firstLoopVeloc = !firstLoopVeloc;
                 mf_velocity_mode.active = false;
             }else{
-                float delta_time = SecondsSince(&controlTime.startTime);
-                // Linear
-                float distanceTraveled_L = Rad_Left()  * trackWheelRadius;
-                float distanceTraveled_R = Rad_Right() * trackWheelRadius;
-                //float linearVelocity = sqrt(distanceTraveled_L^2 + distanceTraveled_R^2)/delta_time;
-                // Angluar
-                // STUFF GOES HERE
+                struct __attribute__((packed)) { float L; float R; } PWData;
+
+                if(SecondsSince(&controlTime.last_trigger_time) >= update_period){
+                    float distanceTraveled_L = (Rad_Left() - startRad_L) * trackWheelRadius;
+                    float distanceTraveled_R = (Rad_Right() - startRad_R) * trackWheelRadius;
+
+                    distanceTraveled_L = distanceTraveled_L / SecondsSince(&controlTime.last_trigger_time);
+                    distanceTraveled_R = distanceTraveled_R / SecondsSince(&controlTime.last_trigger_time);
+
+                    PWData.L = Controller_Update(&control_Filter_L, distanceTraveled_L, SecondsSince(&controlTime.last_trigger_time));
+                    PWData.R = Controller_Update(&control_Filter_R, distanceTraveled_R, SecondsSince(&controlTime.last_trigger_time));
+
+                        if(PWData.R < 0){
+                            PORTB |= (1 << PB1);
+                            PWData.R = -PWData.R;
+                        }else{
+                            PORTB &= ~(1 << PB1);
+                        }
+
+                        if(PWData.L < 0){
+                            PORTB |= (1 << PB2);
+                            PWData.L = -PWData.L;
+                        }else{
+                            PORTB &= ~(1 << PB2);
+                        }
+
+                        Motor_PWM_Left(PWData.L);
+                        Motor_PWM_Right(PWData.R);
+
+                    controlTime.last_trigger_time = GetTime();
+
+                    // usb_send_msg("cff", 'P', &PWData, sizeof(PWData));
+                }
             }
         }
     }
