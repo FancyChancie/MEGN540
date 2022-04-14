@@ -66,7 +66,8 @@ void Controller_Set_Target_Velocity( Controller_t* p_cont, float vel )
 void Controller_Set_Target_Position( Controller_t* p_cont, float vel )
 {
     p_cont->target_vel = 0.0;
-    p_cont->target_pos = vel * p_cont->update_period;
+    p_cont->target_pos = vel;
+    // p_cont->target_pos = vel * p_cont->update_period;
 }
 
 /**
@@ -77,16 +78,31 @@ float Controller_Update( Controller_t* p_cont, float measurement, float dt )
 {
     float filter_val = Filter_Value(&p_cont->controller, measurement);
     float target;
-    // Position update
+    // Velocity update
     if(p_cont->target_vel > 0){
         target = measurement + dt * p_cont->target_vel;
-    // Velocity update
+    // Position update
     }else{
         target = p_cont->target_pos;
     } 
 
     float last_control_command = p_cont->kp * (target - filter_val);
     return last_control_command;
+
+    // float out_last = Controller_Last(&p_cont);
+    // float curr_filter = Filter_Value(&p_cont->controller, measurement);
+
+    // float output_this = ((&p_cont->num(0))*(&p_cont->target_pos)+(&p_cont->num(1))*curr_filter - (&p_cont->den(1))*out_last)/&p_cont->den(0);
+
+    // if(p_cont->target_vel > 0){
+    //     p_cont->target_pos += curr_filter*dt;
+    // }else{
+    //     p_cont->target_pos = curr_filter;
+    // }
+
+    // float u =  p_cont->kp * (p_cont->target_pos - output_this);
+
+    // return u;
 }
 
 /**
