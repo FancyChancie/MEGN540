@@ -324,7 +324,7 @@ void Message_Handling_Task()
                 // then process your P...
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a P so no need to save it as a variable
 		        
-                struct __attribute__((__packed__)) { int16_t left_PWM; int16_t right_PWM; float duration} data;
+                struct __attribute__((__packed__)) { int16_t left_PWM; int16_t right_PWM; float duration;} data;
 
                 // Read PWM data from buffer
 		        usb_msg_read_into(&data, sizeof(data));
@@ -394,8 +394,8 @@ void Message_Handling_Task()
 
                 mf_distance_mode.active = true;
 
-                Dist_data.linear  = data.linear;
-                Dist_data.angular = data.angular;
+                Dist_data.linear  = data.linear/1000;
+                Dist_data.angular = data.angular*3.0;
                 //Controller_Set_Target_Position(&controller,data.linear)
             }
             break;    
@@ -407,18 +407,19 @@ void Message_Handling_Task()
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a D so no need to save it as a variable
 
                 // Build a meaningful structure to put your data in. Here we want three floats.
-                struct __attribute__((__packed__)) { float linear; float angular; float duration} data;
+                struct __attribute__((__packed__)) { float linear; float angular; float duration;} data;
                 usb_msg_read_into(&data, sizeof(data));
 
                 if(data.duration < 0){
                     mf_distance_mode.active = false;
                     mf_stop_PWM.active = true;
                 }else{
-                    mf_distance_mode.duration = data.duration;
-                    Dist_data.duration = data.duration/1000;
+                    mf_stop_PWM.active = false;
+                    mf_distance_mode.active = true;
+                    mf_distance_mode.duration = data.duration/1000;
                 }
-                Dist_data.linear  = data.linear;
-                Dist_data.angular = data.angular;
+                Dist_data.linear  = data.linear/1000;
+                Dist_data.angular = data.angular*3.0;
             }
             break;      
         case 'v':
@@ -428,12 +429,12 @@ void Message_Handling_Task()
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a v so no need to save it as a variable
 
                 // Build a meaningful structure to put your data in. Here we want two floats.
-                struct __attribute__((__packed__)) { float linear; float angular; } data;
+                struct __attribute__((__packed__)) { float linear; float angular;} data;
                 usb_msg_read_into(&data, sizeof(data));
 
                 mf_velocity_mode.active = true;
 
-                Veloc_data.linear  = data.linear;
+                Veloc_data.linear  = data.linear/1000;
                 Veloc_data.angular = data.angular;
             } 
             break;  
@@ -445,15 +446,15 @@ void Message_Handling_Task()
                 usb_msg_get(); // removes the first character from the received buffer, we already know it was a V so no need to save it as a variable
                 
                 // Build a meaningful structure to put your data in. Here we want three floats.
-                struct __attribute__((__packed__)) { float linear; float angular; float duration} data;
+                struct __attribute__((__packed__)) { float linear; float angular; float duration;} data;
                 usb_msg_read_into(&data, sizeof(data));
 
                 if(data.duration < 0){
                     mf_velocity_mode.active = false;
                     mf_stop_PWM.active = true;
                 }else{
-                    mf_velocity_mode.duration = data.duration;
-                    Veloc_data.duration = data.duration/1000;
+                    mf_velocity_mode.active = true;
+                    mf_velocity_mode.duration = data.duration/1000;
                 }
                 Veloc_data.linear  = data.linear;
                 Veloc_data.angular = data.angular;
